@@ -1,0 +1,18 @@
+[package]
+name = "bevy_kissing_godot_macros"
+description = "Implementation of macros for Bevy💋Godot."
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+repository.workspace = true
+keywords.workspace = true
+categories.workspace = true
+license.workspace = true
+
+[lib]
+proc-macro = true
+
+[dependencies]
+syn = { version = "1.0", features = ["full"] }
+quote = "1.0"
+proc-macro2 = "1.0"

@@ -1,0 +1,20 @@
+[package]
+name = "bevy_kissing_godot"
+description = "Use Bevy in Godot by forcing them to smooch a whole bunch."
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+repository.workspace = true
+keywords.workspace = true
+categories.workspace = true
+license.workspace = true
+
+[dependencies]
+godot.workspace = true
+bevy.workspace = true
+bevy_kissing_godot_macros.workspace = true
+inventory = "0.3.21"
+
+[build-dependencies]
+serde_json = "1.0"
+heck = "0.5.0"

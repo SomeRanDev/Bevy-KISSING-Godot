@@ -1,0 +1,67 @@
+[gd_scene load_steps=6 format=3 uid="uid://crrwcmxvksdmx"]
+
+[ext_resource type="Script" uid="uid://dax26nyc14qs8" path="res://addons/SomeRanDev.BevyKissingGodot/GDScript/ComponentProperty.gd" id="1_hejb6"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_hejb6"]
+content_margin_left = 12.0
+content_margin_top = 12.0
+content_margin_right = 12.0
+content_margin_bottom = 12.0
+bg_color = Color(0, 0, 0, 0.15686275)
+corner_detail = 12
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_hejb6"]
+
+[sub_resource type="LabelSettings" id="LabelSettings_mo2dq"]
+font_size = 12
+font_color = Color(1, 1, 1, 0.627451)
+
+[sub_resource type="LabelSettings" id="LabelSettings_hejb6"]
+font_size = 12
+font_color = Color(1, 1, 1, 0.7058824)
+
+[node name="PanelContainer" type="PanelContainer" node_paths=PackedStringArray("label", "type", "description", "value")]
+custom_minimum_size = Vector2(250, 0)
+offset_right = 255.0
+offset_bottom = 89.0
+size_flags_horizontal = 3
+size_flags_vertical = 0
+theme_override_styles/panel = SubResource("StyleBoxFlat_hejb6")
+script = ExtResource("1_hejb6")
+label = NodePath("ComponentProperty/HBoxContainer/Label")
+type = NodePath("ComponentProperty/HBoxContainer/Type")
+description = NodePath("ComponentProperty/Description")
+value = NodePath("ComponentProperty/Value")
+
+[node name="ComponentProperty" type="VBoxContainer" parent="."]
+layout_mode = 2
+size_flags_vertical = 0
+theme_override_constants/separation = 0
+
+[node name="HBoxContainer" type="HBoxContainer" parent="ComponentProperty"]
+layout_mode = 2
+
+[node name="Label" type="RichTextLabel" parent="ComponentProperty/HBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_styles/normal = SubResource("StyleBoxEmpty_hejb6")
+text = "Field"
+
+[node name="Type" type="Label" parent="ComponentProperty/HBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Type"
+label_settings = SubResource("LabelSettings_mo2dq")
+horizontal_alignment = 2
+
+[node name="Description" type="Label" parent="ComponentProperty"]
+layout_mode = 2
+text = "Test"
+label_settings = SubResource("LabelSettings_hejb6")
+text_overrun_behavior = 3
+
+[node name="Value" type="LineEdit" parent="ComponentProperty"]
+layout_mode = 2
+size_flags_horizontal = 3
+clear_button_enabled = true
+select_all_on_focus = true
