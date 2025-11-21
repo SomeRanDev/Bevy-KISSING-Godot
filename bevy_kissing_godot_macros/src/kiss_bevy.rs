@@ -1,4 +1,4 @@
-use crate::kiss_bevy::node_identifier_argument::NodeIdentifierArgument;
+use crate::arguments::node_identifier_argument::NodeIdentifierArgument;
 
 use proc_macro::TokenStream;
 use quote::quote;
@@ -9,7 +9,7 @@ pub(crate) fn kiss_bevy_impl(attr: TokenStream, item: TokenStream) -> TokenStrea
 	let input_fn = parse_macro_input!(item as ItemFn);
 	let input_fn_name = input_fn.sig.ident.clone();
 
-	let node_identifier = input_arg.ident;
+	let node_identifier = input_arg.get_ident();
 
 	let result = quote! {
 		#[derive(godot::prelude::GodotClass)]

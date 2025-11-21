@@ -1,7 +1,13 @@
 use syn::{Error, Ident, Result, parse::Parse, parse::ParseStream};
 
-pub(super) struct NodeIdentifierArgument {
-	pub(super) ident: Ident,
+pub(crate) struct NodeIdentifierArgument {
+	ident: Ident,
+}
+
+impl NodeIdentifierArgument {
+	pub(crate) fn get_ident(&self) -> &Ident {
+		&self.ident
+	}
 }
 
 const NODE_IDENTIFIER_ARGUMENT_ERROR: &'static str =
