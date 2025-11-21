@@ -23,7 +23,9 @@ pub use crate::types::{
 // * Macro Exports *
 // -----------------
 
-pub use bevy_kissing_godot_macros::{KissingComponent, KissingNode, kiss_bevy, kiss_node};
+pub use bevy_kissing_godot_macros::{
+	KissingComponent, KissingNode, kiss_bevy, kiss_node, plugin_and_kissing_component,
+};
 
 // -----------------------------
 // * Third-Party Crate Exports *
