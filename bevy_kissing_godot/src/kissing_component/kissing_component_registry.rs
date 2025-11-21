@@ -4,6 +4,7 @@ use crate::kissing_component::kissing_component_data::KissingComponentData;
 use bevy_kissing_godot_macros::get_compilation_timestamp;
 
 use std::collections::BTreeMap;
+use std::fmt::Display;
 
 use bevy::prelude::*;
 use godot::prelude::*;
@@ -11,6 +12,26 @@ use godot::prelude::*;
 // -----------
 // * Structs *
 // -----------
+
+enum ConvertComponentDataVariantToRustError {
+	NotArray,
+	EntryNotDictionary,
+	EntryLacksName,
+	EntryNameInvalid,
+}
+
+impl Display for ConvertComponentDataVariantToRustError {
+	fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+		f.write_str(match self {
+			Self::NotArray => "not an array",
+			Self::EntryNotDictionary => "entry not a dictionary",
+			Self::EntryLacksName => "entry dictionary lacks \"name\"",
+			Self::EntryNameInvalid => {
+				"entry dictionary's \"name\" is neither StringName nor String"
+			}
+		})
+	}
+}
 
 #[derive(GodotClass)]
 #[class(init, base = Node)]
@@ -26,9 +47,21 @@ impl KissingComponentRegistry {
 		}
 
 		let component_data = node.get_meta("bevy_components");
-		let d = Self::convert_component_data_variant_to_rust(component_data);
+		let d = match Self::convert_component_data_variant_to_rust(component_data) {
+			Ok(d) => d,
+			Err(e) => {
+				godot_error!(
+					"Bevy Component metadata for {} is malformed (reason: {}).",
+					node,
+					e
+				);
+				return;
+			}
+		};
+
 		for entry in d {
 			let Some(func) = COMPONENT_NAME_TO_FUNC.get(&entry.0) else {
+				godot_error!("Could not find Bevy Component of name {}.", entry.0);
 				continue;
 			};
 			func(world, &entity, entry.1);
@@ -39,33 +72,44 @@ impl KissingComponentRegistry {
 	/// Rust-digestable representation.
 	fn convert_component_data_variant_to_rust(
 		variant: Variant,
-	) -> Vec<(StringName, BTreeMap<String, String>)> {
+	) -> Result<Vec<(StringName, BTreeMap<String, String>)>, ConvertComponentDataVariantToRustError>
+	{
 		let mut result = vec![];
 
 		let Ok(component_data) = variant.try_to::<Array<Variant>>() else {
-			return vec![];
+			return Err(ConvertComponentDataVariantToRustError::NotArray);
 		};
 		for i in 0..component_data.len() {
 			let Some(component) = component_data
 				.get(i)
 				.and_then(|d| d.try_to::<Dictionary>().ok())
 			else {
-				continue;
+				return Err(ConvertComponentDataVariantToRustError::EntryNotDictionary);
 			};
-			let (Some(name), Some(data)) = (
-				component
-					.get("name")
-					.and_then(|n| n.try_to::<StringName>().ok()),
-				component
-					.get("data")
-					.and_then(|n| n.try_to::<Dictionary>().ok()),
-			) else {
-				continue;
+
+			let data = component
+				.get("data")
+				.and_then(|n| n.try_to::<Dictionary>().ok())
+				.unwrap_or_default();
+
+			let Some(component_name) = component.get("name") else {
+				return Err(ConvertComponentDataVariantToRustError::EntryLacksName);
 			};
+			let name = component_name
+				.try_to::<StringName>()
+				.ok()
+				.unwrap_or_else(|| {
+					StringName::from(&component_name.try_to::<String>().unwrap_or_default())
+				});
+
+			if name.is_empty() {
+				return Err(ConvertComponentDataVariantToRustError::EntryNameInvalid);
+			}
 
 			result.push((name, Self::convert_dictionary_to_string_string_map(data)));
 		}
-		result
+
+		Ok(result)
 	}
 
 	/// Given a Godot `Dictionary` that has only strings for both keys and values,
