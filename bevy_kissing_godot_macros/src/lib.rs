@@ -4,6 +4,7 @@ use proc_macro::TokenStream;
 // * Modules *
 // -----------
 
+mod arguments;
 mod get_compilation_timestamp;
 mod kiss_bevy;
 mod kiss_node;
