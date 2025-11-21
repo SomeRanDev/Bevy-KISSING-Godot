@@ -13,7 +13,7 @@ impl GodotNodeId {
 		}
 	}
 
-	pub fn get<T: Inherits<Node>>(&self) -> Gd<T> {
+	pub fn get_as<T: Inherits<Node>>(&self) -> Gd<T> {
 		Gd::try_from_instance_id(self.instance_id).unwrap()
 	}
 }

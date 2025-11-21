@@ -15,6 +15,9 @@ pub use crate::resources::{
 	physics_process_delta::PhysicsProcessDelta, process_delta::ProcessDelta,
 };
 pub use crate::scedules::{PhysicsProcess, Process};
+pub use crate::types::{
+	GodotNodeQueryUtils, QueryGodotNode, QueryGodotNodeWith, SingleGodotNode, SingleGodotNodeWith,
+};
 
 // -----------------
 // * Macro Exports *
