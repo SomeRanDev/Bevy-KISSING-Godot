@@ -1,6 +1,5 @@
 use crate::prelude::*;
 
-use bevy::app::ScheduleRunnerPlugin;
 use bevy::prelude::*;
 
 pub struct KissingCorePlugin;

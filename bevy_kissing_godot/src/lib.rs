@@ -7,3 +7,4 @@ pub mod plugins;
 pub mod prelude;
 pub mod resources;
 pub mod scedules;
+pub mod types;

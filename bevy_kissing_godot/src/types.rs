@@ -1,0 +1,41 @@
+use crate::components::godot_node::GodotNode;
+use crate::components::godot_node_id::GodotNodeId;
+
+use bevy::prelude::*;
+use godot::prelude::*;
+
+// ---------
+// * Types *
+// ---------
+
+/// An alias for a `Query` for a Godot Node with a component.
+pub type QueryGodotNodeWith<'world, 'state, 'id, T> =
+	Query<'world, 'state, &'id GodotNodeId, With<T>>;
+
+/// An alias for a `Query` for a Godot Node type.
+pub type QueryGodotNode<'world, 'state, 'id, T> =
+	QueryGodotNodeWith<'world, 'state, 'id, GodotNode<T>>;
+
+/// An alias for a `Single` query for a Godot Node with a component.
+pub type SingleGodotNodeWith<'world, 'state, 'id, T> =
+	Single<'world, 'state, &'id GodotNodeId, With<T>>;
+
+/// An alias for a `Single` query for a Godot Node type.
+pub type SingleGodotNode<'world, 'state, 'id, T> =
+	SingleGodotNodeWith<'world, 'state, 'id, GodotNode<T>>;
+
+// ----------
+// * Traits *
+// ----------
+
+pub trait GodotNodeQueryUtils<T: GodotClass> {
+	fn get(&self) -> Gd<T>;
+}
+
+impl<'world, 'state, 'id, T: GodotClass + Inherits<Node>> GodotNodeQueryUtils<T>
+	for SingleGodotNode<'world, 'state, 'id, T>
+{
+	fn get(&self) -> Gd<T> {
+		self.get_as::<T>()
+	}
+}
