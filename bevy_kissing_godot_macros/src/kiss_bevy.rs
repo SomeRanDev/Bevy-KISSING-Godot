@@ -9,7 +9,19 @@ pub(crate) fn kiss_bevy_impl(attr: TokenStream, item: TokenStream) -> TokenStrea
 	let input_fn = parse_macro_input!(item as ItemFn);
 	let input_fn_name = input_fn.sig.ident.clone();
 
-	let node_identifier = input_arg.get_ident();
+	let node_identifier = input_arg.app_identifier;
+
+	let process_call = quote!(self.app.process(delta));
+	let process_call = input_arg
+		.process_wrapper_macro
+		.map(|m| quote!(#m!(#process_call, self)))
+		.unwrap_or(process_call);
+
+	let physics_process_call = quote!(self.app.physics_process(delta));
+	let physics_process_call = input_arg
+		.physics_process_wrapper_macro
+		.map(|m| quote!(#m!(#physics_process_call, self)))
+		.unwrap_or(physics_process_call);
 
 	let result = quote! {
 		#[derive(godot::prelude::GodotClass)]
@@ -21,13 +33,6 @@ pub(crate) fn kiss_bevy_impl(attr: TokenStream, item: TokenStream) -> TokenStrea
 
 		#[godot::prelude::godot_api]
 		impl #node_identifier {
-			fn on_node_added(&mut self, node_added: Gd<Node>) {
-				self.app.on_node_added(node_added);
-			}
-
-			fn on_node_removed(&mut self, node_removed: Gd<Node>) {
-				self.app.on_node_removed(node_removed);
-			}
 		}
 
 		#[godot::prelude::godot_api]
@@ -47,11 +52,11 @@ pub(crate) fn kiss_bevy_impl(attr: TokenStream, item: TokenStream) -> TokenStrea
 			}
 
 			fn process(&mut self, delta: f64) {
-				self.app.process(delta);
+				#process_call;
 			}
 
 			fn physics_process(&mut self, delta: f64) {
-				self.app.physics_process(delta);
+				#physics_process_call;
 			}
 		}
 
