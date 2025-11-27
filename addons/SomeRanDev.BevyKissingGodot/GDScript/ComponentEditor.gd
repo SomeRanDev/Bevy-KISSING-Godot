@@ -38,6 +38,7 @@ func _ready() -> void:
 	remove_button.icon = get_theme_icon("Remove", "EditorIcons");
 
 	add_button.pressed.connect(on_add_clicked);
+	remove_button.pressed.connect(on_remove_clicked);
 
 	root = component_list.create_item();
 	component_list.item_activated.connect(on_component_list_activated);
@@ -94,7 +95,7 @@ func get_data_from_index(index: int) -> Dictionary:
 		return {};
 
 ## Called when the "Add" button is clicked.
-func on_add_clicked():
+func on_add_clicked() -> void:
 	if modifying_node == null:
 		return;
 
@@ -102,9 +103,22 @@ func on_add_clicked():
 	dialog.popup_centered();
 	dialog.on_open(modifying_node, -1, "", {});
 
+## Called when the "Remove" button is clicked.
+func on_remove_clicked() -> void:
+	var item := component_list.get_selected();
+	if item == null:
+		return;
+
+	var index = item.get_index();
+	var bevy_components := modifying_node.get_meta("bevy_components", []) as Array;
+	if index >= 0 && index < bevy_components.size():
+		bevy_components.remove_at(index);
+		root.remove_child(item);
+		item.free();
+
 ## Called when an item is double clicked so it may be edited.
 func on_component_list_activated() -> void:
-	var item = component_list.get_selected();
+	var item := component_list.get_selected();
 	if item == null:
 		return;
 
