@@ -1,5 +1,5 @@
 [workspace.package]
-version = "1.0.0"
+version = "2.0.0"
 edition = "2024"
 authors = ["Maybee Rezbit <SomeRanDev.Contact@gmail.com>"]
 repository = "https://github.com/SomeRanDev/Bevy-KISSING-Godot"
@@ -17,4 +17,4 @@ resolver = "2"
 [workspace.dependencies]
 godot = { version = "0.4.2" }
 bevy = { version = "0.17", default-features = false }
-bevy_kissing_godot_macros = { version = "1.0.0", path = "bevy_kissing_godot_macros" }
+bevy_kissing_godot_macros = { version = "2.0.0", path = "bevy_kissing_godot_macros" }
