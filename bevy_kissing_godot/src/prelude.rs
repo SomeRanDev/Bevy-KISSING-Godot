@@ -10,9 +10,10 @@
 
 pub use crate::bevy_entity_ready::BevyEntityReady;
 pub use crate::components::{godot_node::GodotNode, godot_node_id::GodotNodeId};
+pub use crate::kissing_component::kissing_component_field::KissingComponentField;
 pub use crate::plugins::kissing_core_plugin::KissingCorePlugin;
 pub use crate::resources::{
-	physics_process_delta::PhysicsProcessDelta, process_delta::ProcessDelta,
+	all_nodes::AllNodes, physics_process_delta::PhysicsProcessDelta, process_delta::ProcessDelta,
 };
 pub use crate::scedules::{PhysicsProcess, Process};
 pub use crate::types::{
@@ -24,7 +25,8 @@ pub use crate::types::{
 // -----------------
 
 pub use bevy_kissing_godot_macros::{
-	KissingComponent, KissingNode, kiss_bevy, kiss_node, plugin_and_kissing_component,
+	KissingComponent, KissingNode, kiss_bevy, kiss_node, kissing_component,
+	plugin_and_kissing_component,
 };
 
 // -----------------------------

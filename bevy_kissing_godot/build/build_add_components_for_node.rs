@@ -29,10 +29,6 @@ pub(crate) fn build_add_components_for_node() {
 
 	println!("cargo:rerun-if-env-changed=GODOT4_BIN");
 	println!("cargo:rerun-if-env-changed=GODOT_PATH");
-	println!(
-		"cargo::rerun-if-changed={}",
-		extension_api_path.to_string_lossy()
-	);
 
 	// ---
 	// Get Godot path and ensure extension_api.json exists
@@ -245,7 +241,7 @@ fn generate_file(out_dir: OsString, entries: Vec<String>) {
 			"fn add_components_for_node<'a>(world: &'a mut bevy::prelude::World, node: &godot::prelude::Gd<godot::prelude::Node>) -> Option<bevy::prelude::EntityWorldMut<'a>> {{
 	match godot::prelude::StringName::from(&node.get_class()).hash_u32() {{{}
 		_ => {{
-			let custom_entity = crate::kissing_node::kissing_node::KissingNode::add_components_for_kissing_node(world, node);
+			let custom_entity = crate::kissing_node::kissing_node::KissingNode::add_godot_editor_components_for_kissing_node(world, node);
 			if custom_entity.is_none() {{
 				godot_warn!(\"Could not set up Node marker components for `get_class` returning \\\"{{}}\\\"\", node.get_class());
 			}}

@@ -1,8 +1,12 @@
-use std::{collections::HashMap, sync::LazyLock};
-
-use godot::prelude::*;
-
 use crate::kissing_component::kissing_component_data::KissingComponentData;
+
+use std::{
+	collections::{BTreeMap, HashMap},
+	sync::LazyLock,
+};
+
+use bevy::prelude::*;
+use godot::prelude::*;
 
 // -------------------------
 // * Top-Level Macro Calls *
@@ -38,9 +42,10 @@ pub static COMPONENT_NAME_TO_FUNC: LazyLock<
 
 /// A reference to a component's static function [add_component_from_editor_fields].
 type AddComponentFromEditorFieldsCallback = fn(
-	world: &mut bevy::prelude::World,
-	entity: &bevy::prelude::Entity,
-	fields: std::collections::BTreeMap<String, String>,
+	node: &Gd<Node>,
+	world: &mut World,
+	entity: &Entity,
+	fields: BTreeMap<String, Variant>,
 ) -> bool;
 
 // ----------------

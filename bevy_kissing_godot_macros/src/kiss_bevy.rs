@@ -46,9 +46,7 @@ pub(crate) fn kiss_bevy_impl(attr: TokenStream, item: TokenStream) -> TokenStrea
 					godot_warn!("Could not get SceneTree while setting up Bevy App.");
 					return;
 				};
-				tree.signals().node_added().connect_other(self, Self::on_node_added);
-				tree.signals().node_removed().connect_other(self, Self::on_node_removed);
-				self.app.post_ready(tree);
+				self.app.post_ready(self.to_gd().upcast(), tree);
 			}
 
 			fn process(&mut self, delta: f64) {

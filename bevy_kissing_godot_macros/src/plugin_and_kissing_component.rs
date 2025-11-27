@@ -20,6 +20,7 @@ pub(crate) fn plugin_and_kissing_component_impl(
 	let plugin_identifier = Ident::new(&format!("{}Plugin", identifier_string), Span::call_site());
 
 	let result = quote! {
+		#[bevy_kissing_godot::prelude::kissing_component]
 		#[derive(bevy::prelude::Component, bevy_kissing_godot::prelude::KissingComponent)]
 		struct #component_identifier;
 

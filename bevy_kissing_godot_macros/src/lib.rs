@@ -8,13 +8,20 @@ mod arguments;
 mod get_compilation_timestamp;
 mod kiss_bevy;
 mod kiss_node;
+mod kissing_component;
 mod kissing_component_derive;
 mod kissing_node_derive;
 mod plugin_and_kissing_component;
+mod utils;
 
 // -------------
 // * Functions *
 // -------------
+
+#[proc_macro_attribute]
+pub fn kissing_component(attr: TokenStream, item: TokenStream) -> TokenStream {
+	kissing_component::kissing_component_impl(attr, item)
+}
 
 #[proc_macro]
 pub fn get_compilation_timestamp(input: TokenStream) -> TokenStream {
