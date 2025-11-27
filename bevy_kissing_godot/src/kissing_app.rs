@@ -62,6 +62,7 @@ impl KissingApp {
 		let Some(app) = self.app.as_mut() else { return };
 		app.world_mut().resource_mut::<ProcessDelta>().0 = delta;
 		app.world_mut().run_schedule(Process);
+		app.world_mut().clear_trackers();
 	}
 
 	/// Called every `_physics_process` of the user's Bevy app node.
