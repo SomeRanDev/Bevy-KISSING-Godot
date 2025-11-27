@@ -9,7 +9,8 @@ impl Plugin for KissingCorePlugin {
 		app.init_resource::<ProcessDelta>();
 		app.init_resource::<PhysicsProcessDelta>();
 
-		app.add_schedule(Schedule::new(Process))
+		app.add_schedule(Schedule::new(bevy::prelude::Startup))
+			.add_schedule(Schedule::new(Process))
 			.add_schedule(Schedule::new(PhysicsProcess));
 	}
 }
