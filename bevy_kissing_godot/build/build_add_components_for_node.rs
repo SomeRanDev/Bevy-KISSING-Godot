@@ -208,25 +208,25 @@ fn generate_cases(
 		let Some(inherits) = class_inheritance_list_map.get(name) else {
 			continue;
 		};
+		let component_construct_code = if inherits.is_empty() {
+			format!("GodotNode::<godot::classes::{}>::default()", name)
+		} else {
+			format!(
+				"({})",
+				vec![name]
+					.into_iter()
+					.chain(inherits.iter().copied())
+					.map(|cls| format!(
+						"GodotNode::<godot::classes::{}>::default()",
+						crate::build_utils::godot_codegen::conv::to_pascal_case(cls)
+					))
+					.collect::<Vec<String>>()
+					.join(", ")
+			)
+		};
 		entries.push(format!(
 			"\n\t\t{} => {{ world.spawn({}).into() }}",
-			class_name_hashes[i],
-			if inherits.is_empty() {
-				&format!("GodotNode::<godot::classes::{}>::default()", name)
-			} else {
-				&format!(
-					"({})",
-					vec![name]
-						.into_iter()
-						.chain(inherits.iter().copied())
-						.map(|cls| format!(
-							"GodotNode::<godot::classes::{}>::default()",
-							crate::build_utils::godot_codegen::conv::to_pascal_case(cls)
-						))
-						.collect::<Vec<String>>()
-						.join(", ")
-				)
-			}
+			class_name_hashes[i], &component_construct_code,
 		));
 	}
 	entries
