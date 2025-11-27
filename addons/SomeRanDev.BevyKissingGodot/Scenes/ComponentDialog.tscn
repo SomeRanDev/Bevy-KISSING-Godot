@@ -11,17 +11,17 @@ content_margin_top = 4.0
 content_margin_right = 4.0
 content_margin_bottom = 4.0
 
-[node name="ComponentDialog" type="ConfirmationDialog" node_paths=PackedStringArray("left", "component_list", "properties_list", "description")]
+[node name="ComponentDialog" type="ConfirmationDialog" node_paths=PackedStringArray("left", "right", "component_list", "description")]
 oversampling_override = 1.0
 title = "Select Bevy Component"
 position = Vector2i(0, 36)
-size = Vector2i(600, 489)
+size = Vector2i(800, 746)
 visible = true
 dialog_hide_on_ok = false
 script = ExtResource("1_jy2ef")
 left = NodePath("SplitContainer/Left")
+right = NodePath("SplitContainer/Right")
 component_list = NodePath("SplitContainer/Left/ComponentsList")
-properties_list = NodePath("SplitContainer/Right/PropertiesConatiner/PropertiesList")
 description = NodePath("SplitContainer/Left/Description")
 style_box = SubResource("StyleBoxFlat_jy2ef")
 properties_style_box = SubResource("StyleBoxFlat_jy2ef")
@@ -29,8 +29,8 @@ properties_style_box = SubResource("StyleBoxFlat_jy2ef")
 [node name="SplitContainer" type="SplitContainer" parent="."]
 offset_left = 8.0
 offset_top = 8.0
-offset_right = 592.0
-offset_bottom = 440.0
+offset_right = 792.0
+offset_bottom = 697.0
 theme_override_constants/separation = 8
 
 [node name="Left" type="VBoxContainer" parent="SplitContainer"]
@@ -64,6 +64,7 @@ scroll_active = false
 layout_mode = 2
 size_flags_vertical = 3
 size_flags_stretch_ratio = 0.4
+theme_type_variation = &"EditorHelpBitContent"
 
 [node name="Right" type="VBoxContainer" parent="SplitContainer"]
 custom_minimum_size = Vector2(200, 0)
@@ -78,12 +79,5 @@ text = "[b]Component Properties:[/b]"
 fit_content = true
 scroll_active = false
 
-[node name="PropertiesConatiner" type="ScrollContainer" parent="SplitContainer/Right"]
+[node name="Control" type="Control" parent="SplitContainer/Right"]
 layout_mode = 2
-size_flags_vertical = 3
-theme_override_styles/panel = SubResource("StyleBoxFlat_jy2ef")
-
-[node name="PropertiesList" type="HFlowContainer" parent="SplitContainer/Right/PropertiesConatiner"]
-layout_mode = 2
-size_flags_horizontal = 3
-size_flags_vertical = 3

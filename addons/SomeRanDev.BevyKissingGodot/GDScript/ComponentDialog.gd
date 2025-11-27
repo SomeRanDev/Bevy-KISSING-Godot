@@ -13,8 +13,8 @@ signal on_component_edited(index: int, data: Dictionary);
 # ---
 
 @export var left: Control;
+@export var right: Control;
 @export var component_list: Tree;
-@export var properties_list: HFlowContainer;
 @export var description: RichTextLabel;
 
 @export var style_box: StyleBoxFlat;
@@ -24,9 +24,11 @@ signal on_component_edited(index: int, data: Dictionary);
 
 var root: TreeItem;
 var components: Array;
-var properties: Array[BKGComponentProperty] = [];
 var last_id: float = -1.0;
 var edit_index: int = -1;
+var inspector: EditorInspector;
+var inspector_object: Object;
+var modifying_node: Node;
 
 # ---
 
@@ -37,9 +39,10 @@ func _ready() -> void:
 	get_ok_button().connect("pressed", close_and_emit_data);
 	component_list.connect("item_activated", close_and_emit_data);
 	component_list.connect("item_selected", on_component_selected);
-
-	#style_box.bg_color = get_theme_color("dark_color_1", "Editor");
-	#add_theme_stylebox_override("panel", style_box);
+	
+	inspector = EditorInspector.new();
+	inspector.size_flags_vertical = Control.SIZE_EXPAND_FILL;
+	right.add_child(inspector);
 
 	properties_style_box.bg_color = get_theme_color("dark_color_2", "Editor");
 
@@ -61,7 +64,13 @@ func load_components_if_necessary() -> bool:
 ##
 ## If editing a component, [param edit_index] should be the index of the
 ## component's data in the edited object's "bevy_components" metadata.
-func on_open(edit_index: int, component_name: String, old_data: Dictionary) -> void:
+func on_open(
+	modifying_node: Node,
+	edit_index: int,
+	component_name: String,
+	old_data: Dictionary
+) -> void:
+	self.modifying_node = modifying_node;
 	self.edit_index = edit_index;
 
 	if !load_components_if_necessary():
@@ -70,10 +79,10 @@ func on_open(edit_index: int, component_name: String, old_data: Dictionary) -> v
 	# If we're editing something, hide component list and find the component.
 	if edit_index >= 0:
 		left.visible = false;
-		setup_fields([], {});
+		setup_inspector(null, {});
 		for c in components:
 			if component_name == c.get("name"):
-				setup_fields(c.get("fields"), old_data);
+				setup_inspector(c, old_data);
 				break;
 		return;
 
@@ -97,17 +106,20 @@ func clear_component_list() -> void:
 ## the values are their text values from the inputs on the dialog.
 func generate_data() -> Dictionary:
 	var result = {};
-	for property in properties:
-		result.set(
-			property.get_property_name(),
-			property.get_value()
-		);
+
+	for property in inspector_object.get_property_list():
+		var name: String = property.get("name");
+		# Ignore built-in "script" property and all metadata.
+		if name == "script" || name.begins_with("metadata/"): continue;
+		result.set(name, inspector_object.get(name));
+
 	return result;
 
 ## Closes the dialog and emits the correct signal.
 func close_and_emit_data() -> void:
 	hide();
 	emit_data();
+	cleanup();
 
 ## Emits the correct signal based on whether this is a component edit or 
 ## creation with the new data.
@@ -117,10 +129,12 @@ func emit_data() -> void:
 		return;
 	
 	var selected = component_list.get_selected();
+	print(selected);
 	if selected == null:
 		return;
 
 	var text = selected.get_text(0);
+	print(text);
 	if text.is_empty():
 		return;
 
@@ -132,30 +146,42 @@ func on_component_selected() -> void:
 	var selected = component_list.get_selected();
 	if selected == null:
 		description.text = "";
-		setup_fields([], {});
+		setup_inspector(null, {});
 		return;
 
 	var data = selected.get_metadata(0);
 	description.text = data.get("docs");
-	setup_fields(data.get("fields"), {});
+	setup_inspector(data, {});
 
-## Generates the "property" list controls for a component given its "fields"
-## data.
+## Frees the [member inspector_object] if it exists and clears 
+## the editor inspector's object.
+func cleanup() -> void:
+	if inspector_object != null:
+		inspector.edit(null);
+		inspector_object.free();
+		inspector_object = null;
+
+## Given a Bevy component's data, this will set up the editor 
+## inspector with the properties exported by the component.
 ##
-## The initial values for the fields can be provided in [param initial_value],
-## with the key being the name of the property and the value being its initial
-## value. If [param initial_values] does not contain an entry for a property,
-## the [param fields]'s "default_value" will be used instead. 
-func setup_fields(fields: Array, initial_values: Dictionary) -> void:
-	if !properties.is_empty():
-		for p in properties:
-			properties_list.remove_child(p);
-			p.queue_free();
-		properties = [];
+## [null] can be passed to clear the inspector.
+func setup_inspector(data: Variant, old_data: Dictionary) -> void:
+	cleanup();
 
-	for field in fields:
-		var property: BKGComponentProperty = PROPERTY.instantiate();
-		properties_list.add_child(property);
-		properties.push_back(property);
-		var initial_value = initial_values.get(field.get("name"), field.get("default_value", ""));
-		property.setup(field, initial_value);
+	if data == null:
+		return;
+
+	var data_class_name = data.get("data_class_name");
+	if !ClassDB.class_exists(data_class_name):
+		push_error("Bevy💋Godot error: %s does not exist. Try restarting." % data_class_name);
+		return;
+
+	if !ClassDB.can_instantiate(data_class_name):
+		push_error("Bevy💋Godot error: %s cannot be instantiated. Try restarting." % data_class_name);
+		return;
+
+	inspector_object = ClassDB.instantiate(data_class_name);
+	inspector_object.set_meta("__base_node_relative", modifying_node);
+	for key in old_data.keys():
+		inspector_object.set(key, old_data[key]);
+	inspector.edit(inspector_object);

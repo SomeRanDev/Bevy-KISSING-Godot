@@ -100,7 +100,7 @@ func on_add_clicked():
 
 	ensure_dialog_exists();
 	dialog.popup_centered();
-	dialog.on_open(-1, "", {});
+	dialog.on_open(modifying_node, -1, "", {});
 
 ## Called when an item is double clicked so it may be edited.
 func on_component_list_activated() -> void:
@@ -110,7 +110,12 @@ func on_component_list_activated() -> void:
 
 	ensure_dialog_exists();
 	dialog.popup_centered();
-	dialog.on_open(item.get_index(), item.get_text(0), get_data_from_index(item.get_index()));
+	dialog.on_open(
+		modifying_node,
+		item.get_index(),
+		item.get_text(0),
+		get_data_from_index(item.get_index())
+	);
 
 ## Connected to [member dialog]'s [signal BKGAddDialog.on_component_added].
 func on_component_added(component_name: String, data: Dictionary) -> void:

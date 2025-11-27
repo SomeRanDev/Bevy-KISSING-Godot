@@ -27,7 +27,7 @@ impl KissingNode {
 		}
 	}
 
-	pub fn add_components_for_kissing_node<'a>(
+	pub fn add_godot_editor_components_for_kissing_node<'a>(
 		world: &'a mut World,
 		node: &Gd<Node>,
 	) -> Option<EntityWorldMut<'a>> {
@@ -48,7 +48,9 @@ impl KissingNode {
 			.and_then(|e| world.get_entity_mut(e).ok())
 	}
 
-	pub fn aaa<T: GodotClass>(world: &mut World) -> Entity {
+	pub fn create_entity_with_godot_node_class_components<T: GodotClass>(
+		world: &mut World,
+	) -> Entity {
 		let mut e = world.spawn_empty();
 		crate::components::godot_node::GodotNode::<T>::add_components_from_type(&mut e);
 		e.id()

@@ -1,5 +1,6 @@
 use crate::components::godot_node::GodotNode;
 use crate::components::godot_node_id::GodotNodeId;
+use crate::resources::all_nodes::AllNodes;
 
 use bevy::prelude::*;
 use godot::prelude::*;
@@ -29,13 +30,13 @@ pub type SingleGodotNode<'world, 'state, 'id, T> =
 // ----------
 
 pub trait GodotNodeQueryUtils<T: GodotClass> {
-	fn get(&self) -> Gd<T>;
+	fn get(&self, all_nodes: &AllNodes) -> Gd<T>;
 }
 
 impl<'world, 'state, 'id, T: GodotClass + Inherits<Node>> GodotNodeQueryUtils<T>
 	for SingleGodotNode<'world, 'state, 'id, T>
 {
-	fn get(&self) -> Gd<T> {
-		self.get_as::<T>()
+	fn get(&self, all_nodes: &AllNodes) -> Gd<T> {
+		self.get_as::<T>(all_nodes)
 	}
 }

@@ -64,7 +64,7 @@ impl KissingComponentRegistry {
 				godot_error!("Could not find Bevy Component of name {}.", entry.0);
 				continue;
 			};
-			func(world, &entity, entry.1);
+			func(node, world, &entity, entry.1);
 		}
 	}
 
@@ -72,7 +72,7 @@ impl KissingComponentRegistry {
 	/// Rust-digestable representation.
 	fn convert_component_data_variant_to_rust(
 		variant: Variant,
-	) -> Result<Vec<(StringName, BTreeMap<String, String>)>, ConvertComponentDataVariantToRustError>
+	) -> Result<Vec<(StringName, BTreeMap<String, Variant>)>, ConvertComponentDataVariantToRustError>
 	{
 		let mut result = vec![];
 
@@ -114,8 +114,10 @@ impl KissingComponentRegistry {
 
 	/// Given a Godot `Dictionary` that has only strings for both keys and values,
 	/// converts it to a `BTreeMap`.
-	fn convert_dictionary_to_string_string_map(dictionary: Dictionary) -> BTreeMap<String, String> {
-		let mut values = BTreeMap::<String, String>::new();
+	fn convert_dictionary_to_string_string_map(
+		dictionary: Dictionary,
+	) -> BTreeMap<String, Variant> {
+		let mut values = BTreeMap::<String, Variant>::new();
 		let keys = dictionary.keys_array();
 		for j in 0..keys.len() {
 			let Some(key) = keys.get(j) else { continue };
@@ -125,7 +127,7 @@ impl KissingComponentRegistry {
 			let Some(value) = dictionary.get(key) else {
 				continue;
 			};
-			values.insert(key_string_name.to_string(), value.to::<String>());
+			values.insert(key_string_name.to_string(), value);
 		}
 		values
 	}
@@ -143,17 +145,7 @@ impl KissingComponentRegistry {
 			.collect::<Vec<KissingComponentData>>();
 		let mut result = array![];
 		for component_data in all_component_data {
-			let fields_gd = component_data
-				.fields
-				.iter()
-				.map(|s| s.to_dictionary())
-				.collect::<Array<Dictionary>>();
-
-			result.push(&vdict!(
-				"name": component_data.name.to_variant(),
-				"docs": component_data.docs.to_variant(),
-				"fields": fields_gd,
-			));
+			result.push(&component_data.to_dictionary());
 		}
 		result
 	}
