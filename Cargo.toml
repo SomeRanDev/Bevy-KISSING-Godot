@@ -15,6 +15,6 @@ members = [
 resolver = "2"
 
 [workspace.dependencies]
-godot = { version = "0.4.2" }
-bevy = { version = "0.17", default-features = false }
+godot = { version = "0.4.5" }
+bevy = { version = "0.18", default-features = false }
 bevy_kissing_godot_macros = { version = "2.0.0", path = "bevy_kissing_godot_macros" }

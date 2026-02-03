@@ -9,7 +9,7 @@ pub struct KissingComponentData {
 }
 
 impl KissingComponentData {
-	pub fn to_dictionary(&self) -> Dictionary {
+	pub fn to_dictionary(&self) -> VarDictionary {
 		vdict! {
 			"name": self.name.to_variant(),
 			"data_class_name": self.data_class_name.to_variant(),
@@ -17,7 +17,7 @@ impl KissingComponentData {
 			"fields": self.fields
 				.iter()
 				.map(|s| s.to_dictionary())
-				.collect::<Array<Dictionary>>(),
+				.collect::<Array<VarDictionary>>(),
 		}
 	}
 }
@@ -30,7 +30,7 @@ pub struct KissingComponentFieldData {
 }
 
 impl KissingComponentFieldData {
-	pub fn to_dictionary(&self) -> Dictionary {
+	pub fn to_dictionary(&self) -> VarDictionary {
 		vdict! {
 			"name": self.name,
 			"type_string": self.type_string,
