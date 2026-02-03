@@ -82,14 +82,14 @@ impl KissingComponentRegistry {
 		for i in 0..component_data.len() {
 			let Some(component) = component_data
 				.get(i)
-				.and_then(|d| d.try_to::<Dictionary>().ok())
+				.and_then(|d| d.try_to::<VarDictionary>().ok())
 			else {
 				return Err(ConvertComponentDataVariantToRustError::EntryNotDictionary);
 			};
 
 			let data = component
 				.get("data")
-				.and_then(|n| n.try_to::<Dictionary>().ok())
+				.and_then(|n| n.try_to::<VarDictionary>().ok())
 				.unwrap_or_default();
 
 			let Some(component_name) = component.get("name") else {
@@ -112,10 +112,10 @@ impl KissingComponentRegistry {
 		Ok(result)
 	}
 
-	/// Given a Godot `Dictionary` that has only strings for both keys and values,
+	/// Given a Godot `VarDictionary` that has only strings for both keys and values,
 	/// converts it to a `BTreeMap`.
 	fn convert_dictionary_to_string_string_map(
-		dictionary: Dictionary,
+		dictionary: VarDictionary,
 	) -> BTreeMap<String, Variant> {
 		let mut values = BTreeMap::<String, Variant>::new();
 		let keys = dictionary.keys_array();
@@ -137,9 +137,9 @@ impl KissingComponentRegistry {
 impl KissingComponentRegistry {
 	/// Provides the "kissing" component data in a Godot-compatible format.
 	///
-	/// The key/value pairs of the [`Dictionary`] correlate to the fields of [`KissingComponentData`].
+	/// The key/value pairs of the [`VarDictionary`] correlate to the fields of [`KissingComponentData`].
 	#[func]
-	pub fn find_all_kissing_components() -> Array<Dictionary> {
+	pub fn find_all_kissing_components() -> Array<VarDictionary> {
 		let all_component_data = inventory::iter::<KissingComponent>()
 			.map(|e| e.get_data())
 			.collect::<Vec<KissingComponentData>>();
