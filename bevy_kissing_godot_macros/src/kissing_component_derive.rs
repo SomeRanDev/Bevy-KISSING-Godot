@@ -1,9 +1,9 @@
 use proc_macro::TokenStream;
-use quote::ToTokens;
-use quote::quote;
-use syn::{Attribute, ItemStruct, Lit, Meta, MetaNameValue, parse_macro_input};
+use quote::{ToTokens, quote};
+use syn::{Attribute, Expr, ItemStruct, Lit, Meta, MetaNameValue, parse_macro_input};
 
 use crate::utils::generate_godot_object_name_for_kissing_component_data;
+use crate::utils::is_field_export;
 use crate::utils::is_option_godot_node_id;
 
 /// Returns a `String` that's a combination of all `doc` attributes in the list.
@@ -12,10 +12,12 @@ fn get_doc_comment_from_attrs(attrs: &Vec<Attribute>) -> String {
 		.iter()
 		.filter_map(|attr| {
 			// Only keep attributes that are `doc = "..."`
-			if let Ok(Meta::NameValue(MetaNameValue { path, lit, .. })) = attr.parse_meta() {
+			if let Meta::NameValue(MetaNameValue { path, value, .. }) = &attr.meta {
 				if path.is_ident("doc") {
-					if let Lit::Str(s) = &lit {
-						return Some(s.value());
+					if let Expr::Lit(lit) = &value {
+						if let Lit::Str(s) = &lit.lit {
+							return Some(s.value());
+						}
 					}
 				}
 			}
@@ -75,16 +77,19 @@ pub(super) fn kissing_component_derive_impl(input: TokenStream) -> TokenStream {
 							.try_to::<godot::prelude::NodePath>()
 							.ok()
 							.and_then(|node_path| node.get_node_or_null(&node_path))
-							.map(|node_path_node| all_nodes.get_id_from_node(&node_path_node))
+							.map(|node_path_node| all_nodes.get_or_register_id_from_node(&node_path_node))
 					})
-					.unwrap()
 			}
-		} else {
+		} else if is_field_export(&f) {
 			quote! {
 				#ident: fields
 					.get(stringify!(#ident))
 					.map(|v| v.to::<#ty>())
 					.unwrap()
+			}
+		} else {
+			quote! {
+				#ident: Default::default()
 			}
 		}
 	});
@@ -108,7 +113,7 @@ pub(super) fn kissing_component_derive_impl(input: TokenStream) -> TokenStream {
 			/// Generates the component given a map of strings provided from the Godot editor UI.
 			pub fn from_editor_fields(
 				node: &godot::prelude::Gd<godot::prelude::Node>,
-				all_nodes: &bevy_kissing_godot::prelude::AllNodes,
+				all_nodes: &mut bevy_kissing_godot::prelude::AllNodes,
 				fields: std::collections::BTreeMap<String, godot::prelude::Variant>
 			) -> Self {
 				Self {
@@ -123,10 +128,10 @@ pub(super) fn kissing_component_derive_impl(input: TokenStream) -> TokenStream {
 				entity: &bevy::prelude::Entity,
 				fields: std::collections::BTreeMap<String, godot::prelude::Variant>,
 			) -> bool {
-				let Some(all_nodes) = world.get_non_send_resource::<AllNodes>() else {
+				let Some(mut all_nodes) = world.get_non_send_resource_mut::<bevy_kissing_godot::prelude::AllNodes>() else {
 					return false;
 				};
-				let c = Self::from_editor_fields(node, all_nodes, fields);
+				let c = Self::from_editor_fields(node, &mut all_nodes, fields);
 				drop(all_nodes);
 
 				let Ok(mut e) = world.get_entity_mut(*entity) else { return false };
