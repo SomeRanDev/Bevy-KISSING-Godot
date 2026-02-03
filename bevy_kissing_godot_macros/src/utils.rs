@@ -1,4 +1,4 @@
-use syn::{GenericArgument, Ident, PathArguments, Type};
+use syn::{Field, GenericArgument, Ident, PathArguments, Type};
 
 /// Given an identifier to a "kissing" component struct, return the name of the Godot Object class
 /// used in the editor to generate the component data UI.
@@ -6,6 +6,13 @@ pub(crate) fn generate_godot_object_name_for_kissing_component_data(
 	original_ident: &Ident,
 ) -> String {
 	format!("{}_KissingDataObject", original_ident)
+}
+
+pub(crate) fn is_field_export(field: &Field) -> bool {
+	field.attrs.iter().any(|a| match a.path().get_ident() {
+		Some(ident) => matches!(ident.to_string().as_str(), "export" | "export_node"),
+		_ => false,
+	})
 }
 
 /// Checks if the type is `Option<GodotNodeId>`.
