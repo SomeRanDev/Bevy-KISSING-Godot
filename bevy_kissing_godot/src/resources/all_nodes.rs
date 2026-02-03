@@ -24,18 +24,26 @@ pub struct AllNodes {
 impl AllNodes {
 	/// Provides a `GodotNodeId` given a `Node`.
 	/// `pub` since used in user code in via generated macro code.
-	pub fn get_id_from_node(&self, node: &Gd<Node>) -> Option<GodotNodeId> {
-		let instance_id = node.instance_id();
+	pub fn get_or_register_id_from_node(&mut self, node: &Gd<Node>) -> GodotNodeId {
+		if let Some(node_id) = self.get_id_from_instance_id(&node.instance_id()) {
+			node_id
+		} else {
+			self.register(node.clone())
+		}
+	}
+
+	/// Provides a `GodotNodeId` given an `InstanceId`.
+	pub fn get_id_from_instance_id(&self, instance_id: &InstanceId) -> Option<GodotNodeId> {
 		self.instance_id_to_tracker_id
 			.get(&instance_id)
 			.map(|id| GodotNodeId::new(*id))
 	}
 
-	pub(crate) fn register(&mut self, node: Gd<Node>) -> usize {
+	pub(crate) fn register(&mut self, node: Gd<Node>) -> GodotNodeId {
 		let instance_id = node.instance_id();
 		let id = self.register_impl(node);
 		self.instance_id_to_tracker_id.insert(instance_id, id);
-		id
+		GodotNodeId::new(id)
 	}
 
 	fn register_impl(&mut self, node: Gd<Node>) -> usize {
@@ -58,6 +66,10 @@ impl AllNodes {
 			Some(n) => n.clone().unwrap(),
 			None => panic!("Could not get node from AllNodes."),
 		}
+	}
+
+	pub(crate) fn try_get(&self, index: usize) -> Option<Gd<Node>> {
+		self.nodes.get(index).and_then(|a| a.clone())
 	}
 
 	pub(crate) fn remove(&mut self, instance_id: &InstanceId) {
