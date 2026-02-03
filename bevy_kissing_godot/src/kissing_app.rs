@@ -219,7 +219,7 @@ impl KissingApp {
 			world.spawn_empty()
 		};
 
-		entity.insert(GodotNodeId::new(id));
+		entity.insert(id);
 
 		let entity_id = entity.id();
 
