@@ -209,7 +209,7 @@ fn generate_cases(
 			continue;
 		};
 		let component_construct_code = if inherits.is_empty() {
-			format!("GodotNode::<godot::classes::{}>::default()", name)
+			format!("crate::prelude::GodotNode::<godot::classes::{}>::default()", name)
 		} else {
 			format!(
 				"({})",
@@ -217,7 +217,7 @@ fn generate_cases(
 					.into_iter()
 					.chain(inherits.iter().copied())
 					.map(|cls| format!(
-						"GodotNode::<godot::classes::{}>::default()",
+						"crate::prelude::GodotNode::<godot::classes::{}>::default()",
 						crate::build_utils::godot_codegen::conv::to_pascal_case(cls)
 					))
 					.collect::<Vec<String>>()

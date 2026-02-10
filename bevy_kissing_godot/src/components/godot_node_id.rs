@@ -1,7 +1,7 @@
+use crate::resources::all_nodes::AllNodes;
+
 use bevy::prelude::*;
 use godot::prelude::*;
-
-use crate::resources::all_nodes::AllNodes;
 
 #[derive(Component, Debug)]
 pub struct GodotNodeId {

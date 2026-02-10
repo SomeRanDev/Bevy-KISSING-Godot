@@ -1,7 +1,6 @@
-use crate::{
-	kissing_component::kissing_component_registry::KissingComponentRegistry, prelude::*,
-	resources::all_nodes::AllNodes,
-};
+use crate::prelude::*;
+use crate::kissing_component::kissing_component_registry::KissingComponentRegistry;
+use crate::resources::all_nodes::AllNodes;
 
 use std::collections::BTreeMap;
 use std::mem;

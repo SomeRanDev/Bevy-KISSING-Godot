@@ -14,6 +14,10 @@ enum FieldAttribute {
 	ExportNode { types: Vec<Ident> },
 }
 
+// -----------
+// * Structs *
+// -----------
+
 struct ExportData {
 	initial_value: Option<proc_macro2::TokenStream>,
 }
@@ -163,7 +167,7 @@ fn take_export_attribute_if_exists(field: &mut Field) -> Option<Result<ExportDat
 		}
 	}
 
-	None
+	Some(Ok(result))
 }
 
 /// If a `#[export_node(A, B, etc...)]` attribute exists on `field`, it is removed
@@ -247,7 +251,6 @@ fn generate_godot_object_struct(
 			Err(err) => return Err(err),
 		};
 
-		f.ty = syn::parse_quote! { godot::prelude::NodePath };
 		f.attrs.push(syn::parse_quote! { #[export] });
 
 		match export_data {
@@ -261,6 +264,8 @@ fn generate_godot_object_struct(
 
 			// Add `#[var(hint = NODE_PATH_VALID_TYPES, hint_string = "A,B,C")]` for `#[export_nodes(A, B, C)]`.
 			FieldAttribute::ExportNode { types } => {
+				f.ty = syn::parse_quote! { godot::prelude::NodePath };
+
 				if !types.is_empty() {
 					let allow_types_string = types
 						.iter()
