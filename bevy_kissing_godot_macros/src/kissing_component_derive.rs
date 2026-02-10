@@ -65,7 +65,11 @@ pub(super) fn kissing_component_derive_impl(input: TokenStream) -> TokenStream {
 
 	// Generate field assignments used in generated [from_editor_fields].
 	let field_inputs = struct_input.fields.iter().map(|f| {
-		let ident = &f.ident;
+		let Some(ident) = &f.ident else {
+			return quote! {
+				#ident: Default::default()
+			};
+		};
 		let ty = &f.ty;
 		if is_option_godot_node_id(ty) {
 			quote! {
@@ -81,11 +85,18 @@ pub(super) fn kissing_component_derive_impl(input: TokenStream) -> TokenStream {
 					})
 			}
 		} else if is_field_export(&f) {
+			let get_error_string = format!("could not get field of name {}", ident.to_string());
+			let to_error_string = format!(
+				"could not type field of name {} as {:?}",
+				ident.to_string(),
+				ty
+			);
 			quote! {
 				#ident: fields
 					.get(stringify!(#ident))
-					.map(|v| v.to::<#ty>())
-					.unwrap()
+					.expect(#get_error_string)
+					.try_to::<#ty>()
+					.expect(#to_error_string)
 			}
 		} else {
 			quote! {
