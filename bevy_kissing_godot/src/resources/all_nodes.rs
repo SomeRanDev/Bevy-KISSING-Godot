@@ -1,9 +1,9 @@
+use crate::prelude::GodotNodeId;
+
 use std::collections::BTreeMap;
 
 use bevy::prelude::*;
 use godot::prelude::*;
-
-use crate::prelude::GodotNodeId;
 
 // ---------------
 // * AllNodes *
