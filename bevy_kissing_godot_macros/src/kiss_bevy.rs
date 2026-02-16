@@ -42,10 +42,7 @@ pub(crate) fn kiss_bevy_impl(attr: TokenStream, item: TokenStream) -> TokenStrea
 
 				#input_fn_name(self.app.get_app_mut());
 
-				let Some(tree) = self.base().get_tree() else {
-					godot_warn!("Could not get SceneTree while setting up Bevy App.");
-					return;
-				};
+				let tree = self.base().get_tree();
 				self.app.post_ready(self.to_gd().upcast(), tree);
 			}
 
