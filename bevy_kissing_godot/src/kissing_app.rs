@@ -1,5 +1,6 @@
 use crate::kissing_component::kissing_component_registry::KissingComponentRegistry;
 use crate::prelude::*;
+use crate::resources::entity_preregister::EntityPreregister;
 use crate::resources::gd_tracker::{AllNodes, AllResources};
 
 use std::collections::BTreeMap;
@@ -41,7 +42,7 @@ impl TreeResponder {
 inventory::submit! {
 	crate::kissing_node::kissing_node::KissingNode::new(
 		"TreeResponder",
-		|world| crate::kissing_node::kissing_node::KissingNode::create_entity_with_godot_node_class_components::<TreeResponder>(world),
+		|world, entity| crate::kissing_node::kissing_node::KissingNode::create_entity_with_godot_node_class_components::<TreeResponder>(world, entity),
 	)
 }
 
@@ -88,6 +89,7 @@ impl KissingApp {
 		app.add_plugins(crate::prelude::KissingCorePlugin);
 		app.insert_non_send_resource(AllNodes::default());
 		app.insert_non_send_resource(AllResources::default());
+		app.insert_non_send_resource(EntityPreregister::default());
 		self.app = app.into();
 	}
 
@@ -213,11 +215,15 @@ impl KissingApp {
 			all_nodes.as_mut().register(node.clone())
 		};
 
-		let mut entity = if let Some(entity) = add_components_for_node(world, &node) {
-			entity
-		} else {
-			world.spawn_empty()
+		let entity = {
+			let mut entity_preregister = world.non_send_resource_mut::<EntityPreregister>();
+			if let Some(entity) = entity_preregister.take_entity_if_exists(&node) {
+				world.entity_mut(entity)
+			} else {
+				world.spawn_empty()
+			}
 		};
+		let mut entity = add_components_for_node(entity, &node);
 
 		entity.insert(id);
 
