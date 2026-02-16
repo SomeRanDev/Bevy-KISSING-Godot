@@ -2,9 +2,10 @@ use proc_macro::TokenStream;
 use quote::{ToTokens, quote};
 use syn::{Attribute, Expr, ItemStruct, Lit, Meta, MetaNameValue, parse_macro_input};
 
+use crate::utils::NodeOrResource;
 use crate::utils::generate_godot_object_name_for_kissing_component_data;
 use crate::utils::is_field_export;
-use crate::utils::is_option_godot_node_id;
+use crate::utils::is_node_or_resource_id;
 
 /// Returns a `String` that's a combination of all `doc` attributes in the list.
 fn get_doc_comment_from_attrs(attrs: &Vec<Attribute>) -> String {
@@ -71,18 +72,68 @@ pub(super) fn kissing_component_derive_impl(input: TokenStream) -> TokenStream {
 			};
 		};
 		let ty = &f.ty;
-		if is_option_godot_node_id(ty) {
-			quote! {
-				// Get `Option<bevy_kissing_godot::prelude::GodotNodeId>` from `godot::prelude::NodePath`
-				#ident: fields
-					.get(stringify!(#ident))
-					.and_then(|node_path| {
-						node_path
-							.try_to::<godot::prelude::NodePath>()
-							.ok()
-							.and_then(|node_path| node.get_node_or_null(&node_path))
-							.map(|node_path_node| all_nodes.get_or_register_id_from_node(&node_path_node))
-					})
+		if let Some(data) = is_node_or_resource_id(ty) {
+			let (godot_type, id_type, tracker) = match data.kind {
+				NodeOrResource::Node => (
+					quote! { godot::prelude::NodePath },
+					quote! { bevy_kissing_godot::prelude::GodotNodeId },
+					quote! { all_nodes },
+				),
+				NodeOrResource::Resource => (
+					quote! { godot::prelude::Gd<godot::prelude::Resource> },
+					quote! { bevy_kissing_godot::prelude::GodotResourceId },
+					quote! { all_resources },
+				),
+			};
+			if data.is_array {
+				let convert = match data.kind {
+					NodeOrResource::Node => Some(quote! {
+						node
+							.get_node_or_null(&node_path)
+							.map(|node_path_node|
+								#tracker.get_or_register_id_from_node(&node_path_node)
+							)
+					}),
+					NodeOrResource::Resource => Some(quote! {
+						Some(#tracker.get_or_register_id_from_node(&node_path))
+					}),
+				};
+				quote! {
+					#ident: fields
+						.get(stringify!(#ident))
+						.and_then(|node_path| {
+							node_path
+								.try_to::<godot::prelude::Array<#godot_type>>()
+								.ok()
+								.map(|node_paths|
+									node_paths
+										.iter_shared()
+										.map(|node_path| #convert)
+										.filter(|maybe_node_path| maybe_node_path.is_some())
+										.map(|node_path| node_path.unwrap())
+										.collect::<Vec<#id_type>>()
+								)
+						})
+						.unwrap_or_default()
+				}
+			} else {
+				let convert = match data.kind {
+					NodeOrResource::Node => {
+						Some(quote! { .and_then(|node_path| node.get_node_or_null(&node_path)) })
+					}
+					NodeOrResource::Resource => None,
+				};
+				quote! {
+					#ident: fields
+						.get(stringify!(#ident))
+						.and_then(|node_path| {
+							node_path
+								.try_to::<#godot_type>()
+								.ok()
+								#convert
+								.map(|node_path_node| #tracker.get_or_register_id_from_node(&node_path_node))
+						})
+				}
 			}
 		} else if is_field_export(&f) {
 			let get_error_string = format!("could not get field of name {}", ident.to_string());
@@ -125,6 +176,7 @@ pub(super) fn kissing_component_derive_impl(input: TokenStream) -> TokenStream {
 			pub fn from_editor_fields(
 				node: &godot::prelude::Gd<godot::prelude::Node>,
 				all_nodes: &mut bevy_kissing_godot::prelude::AllNodes,
+				all_resources: &mut bevy_kissing_godot::prelude::AllResources,
 				fields: std::collections::BTreeMap<String, godot::prelude::Variant>
 			) -> Self {
 				Self {
@@ -139,12 +191,12 @@ pub(super) fn kissing_component_derive_impl(input: TokenStream) -> TokenStream {
 				entity: &bevy::prelude::Entity,
 				fields: std::collections::BTreeMap<String, godot::prelude::Variant>,
 			) -> bool {
-				let Some(mut all_nodes) = world.get_non_send_resource_mut::<bevy_kissing_godot::prelude::AllNodes>() else {
-					return false;
-				};
-				let c = Self::from_editor_fields(node, &mut all_nodes, fields);
-				drop(all_nodes);
-
+				let mut system_state: bevy::ecs::system::SystemState<(
+					NonSendMut<bevy_kissing_godot::prelude::AllNodes>,
+					NonSendMut<bevy_kissing_godot::prelude::AllResources>,
+				)> = bevy::ecs::system::SystemState::new(world);
+				let (all_nodes, all_resources) = system_state.get_mut(world);
+				let c = Self::from_editor_fields(node, &mut all_nodes.into_inner(), &mut all_resources.into_inner(), fields);
 				let Ok(mut e) = world.get_entity_mut(*entity) else { return false };
 				e.insert(c);
 				true

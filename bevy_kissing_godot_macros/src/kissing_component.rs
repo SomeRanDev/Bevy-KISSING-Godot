@@ -3,7 +3,9 @@ use proc_macro2::Span;
 use quote::{ToTokens, quote};
 use syn::{Field, Ident, ItemStruct, Path, parse_macro_input, spanned::Spanned};
 
-use crate::utils::{generate_godot_object_name_for_kissing_component_data, is_field_export};
+use crate::utils::{
+	NodeOrResource, generate_godot_object_name_for_kissing_component_data, is_field_export,
+};
 
 // ---------
 // * Enums *
@@ -11,12 +13,19 @@ use crate::utils::{generate_godot_object_name_for_kissing_component_data, is_fie
 
 enum FieldAttribute {
 	Export { data: ExportData },
-	ExportNode { types: Vec<Ident> },
+	ExportNodeOrResource { data: ExportNodeOrResource },
 }
 
 // -----------
 // * Structs *
 // -----------
+
+struct ExportNodeOrResource {
+	types: Vec<Ident>,
+	kind: NodeOrResource,
+}
+
+// ---
 
 struct ExportData {
 	initial_value: Option<proc_macro2::TokenStream>,
@@ -76,21 +85,21 @@ fn generate_component_struct(original_struct: ItemStruct) -> proc_macro2::TokenS
 	}
 }
 
-/// If a `#[export]` or `#[export_node]` attribute exists on `field`, it is removed and
-/// a `FieldAttribute` containing its data is returned.
+/// If a `#[export]` or `#[export_node/resource]` attribute exists on `field`, it is
+/// removed and a `FieldAttribute` containing its data is returned.
 ///
-/// Returns `Ok(None)` if there are no `#[export]` or `#[export_node]` attributes.
+/// Returns `Ok(None)` if there are no `#[export]` or `#[export_node/resource]` attributes.
 ///
 /// Returns `Err` if there IS a supported attribute, but it's malformed.
 fn take_any_export_attribute_if_exists(
 	field: &mut Field,
 ) -> Option<Result<FieldAttribute, syn::Error>> {
 	let export_data = take_export_attribute_if_exists(field);
-	let export_node_data = take_export_node_attribute_if_exists(field);
-	if export_data.is_some() && export_node_data.is_some() {
+	let export_node_or_resource = take_export_node_or_resource_attribute_if_exists(field);
+	if export_data.is_some() && export_node_or_resource.is_some() {
 		return Some(Err(syn::Error::new(
 			field.span(),
-			"A field cannot have both #[export] and #[export_node] on it",
+			"A field cannot have both #[export] and #[export_node/resource] on it",
 		)));
 	}
 
@@ -98,8 +107,10 @@ fn take_any_export_attribute_if_exists(
 		return Some(export_data.map(|data| FieldAttribute::Export { data }));
 	}
 
-	if let Some(export_node_data) = export_node_data {
-		return Some(export_node_data.map(|types| FieldAttribute::ExportNode { types }));
+	if let Some(export_node_or_resource) = export_node_or_resource {
+		return Some(
+			export_node_or_resource.map(|data| FieldAttribute::ExportNodeOrResource { data }),
+		);
 	}
 
 	None
@@ -170,19 +181,19 @@ fn take_export_attribute_if_exists(field: &mut Field) -> Option<Result<ExportDat
 	Some(Ok(result))
 }
 
-/// If a `#[export_node(A, B, etc...)]` attribute exists on `field`, it is removed
-/// and a `Vec` of its arguments is returned.
+/// If an `#[export_node(A, B, etc...)]` or `#[export_resource(A, B, etc...)]` attribute
+/// exists on `field`, it is removed and a `Vec` of its arguments is returned.
 ///
 /// Returns `Some(vec![])` if the attribute has no arguments (`#[export_node]`).
 ///
 /// Returns `None` if there are no `#[export_node]` attributes.
-fn take_export_node_attribute_if_exists(
+fn take_export_node_or_resource_attribute_if_exists(
 	field: &mut Field,
-) -> Option<Result<Vec<Ident>, syn::Error>> {
+) -> Option<Result<ExportNodeOrResource, syn::Error>> {
 	let mut i = 0;
 	let mut attr = None;
 	for a in &field.attrs {
-		if a.path().is_ident("export_node") {
+		if a.path().is_ident("export_node") || a.path().is_ident("export_resource") {
 			attr = field.attrs.remove(i).into();
 			break;
 		}
@@ -215,11 +226,13 @@ fn take_export_node_attribute_if_exists(
 		Err(e) => return Some(Err(e)),
 	};
 
-	if valid_types.is_empty() {
-		return Some(Ok(vec![]));
-	}
-
-	Some(Ok(valid_types))
+	Some(Ok(ExportNodeOrResource {
+		types: valid_types,
+		kind: match attr.path().get_ident() {
+			Some(v) if v == "export_node" => NodeOrResource::Node,
+			_ => NodeOrResource::Resource,
+		},
+	}))
 }
 
 /// Given a copy of the input `kissing_component` struct, returns the token-stream
@@ -232,7 +245,7 @@ fn generate_godot_object_struct(
 	// Remove attributes, they should be applied on the Component.
 	result.attrs.clear();
 
-	// Filter out all fields that aren't `#[export]` or `#[export_node]`.
+	// Filter out all fields that aren't `#[export]`, `#[export_node]`, or `#[export_resource]`.
 	let mut fields = result
 		.fields
 		.iter()
@@ -263,20 +276,52 @@ fn generate_godot_object_struct(
 			}
 
 			// Add `#[var(hint = NODE_PATH_VALID_TYPES, hint_string = "A,B,C")]` for `#[export_nodes(A, B, C)]`.
-			FieldAttribute::ExportNode { types } => {
-				f.ty = syn::parse_quote! { godot::prelude::NodePath };
+			// Or add `#[var(hint = RESOURCE_TYPE, hint_string = "A,B,C")]` for `#[export_resources(A, B, C)]`.
+			FieldAttribute::ExportNodeOrResource { data } => {
+				// Set the exported type to NodePath for nodes and Gd<Resource> for resources.
+				let original_type_is_vec = is_vec(&f.ty);
+				f.ty = match data.kind {
+					NodeOrResource::Node => syn::parse_quote! { godot::prelude::NodePath },
+					NodeOrResource::Resource => {
+						syn::parse_quote! { godot::prelude::Gd<godot::prelude::Resource> }
+					}
+				};
 
-				if !types.is_empty() {
-					let allow_types_string = types
+				// If the original type is a Vec, wrap our new type with Array.
+				// Otherwise, if it's a resource, wrap with Option.
+				{
+					let t = &f.ty;
+					if original_type_is_vec {
+						f.ty = syn::parse_quote! { godot::prelude::Array<#t> };
+					} else if data.kind == NodeOrResource::Resource {
+						f.ty = syn::parse_quote! { Option<#t> };
+					}
+				}
+
+				// If filtering for specific types, get them as a hint string here.
+				let allow_types_string = if !data.types.is_empty() {
+					data
+						.types
 						.iter()
 						.map(|n| n.to_string())
 						.collect::<Vec<String>>()
-						.join(", ");
+						.join(", ")
+				} else {
+					match data.kind {
+						NodeOrResource::Node => "Node",
+						NodeOrResource::Resource => "Resource",
+					}.to_string()
+				};
 
-					f.attrs.push(
-						syn::parse_quote! { #[var(hint = NODE_PATH_VALID_TYPES, hint_string = #allow_types_string)] },
-					);
-				}
+				// Generate the #[var] attribute.
+				f.attrs.push(match data.kind {
+					NodeOrResource::Node => {
+						syn::parse_quote! { #[var(hint = NODE_PATH_VALID_TYPES, hint_string = #allow_types_string)] }
+					}
+					NodeOrResource::Resource => {
+						syn::parse_quote! { #[var(hint = RESOURCE_TYPE, hint_string = #allow_types_string)] }
+					}
+				});
 			}
 		}
 	}
@@ -288,7 +333,7 @@ fn generate_godot_object_struct(
 	);
 
 	let ident = result.ident;
-	let a = quote! {
+	let new_declaration = quote! {
 		#[derive(godot::prelude::GodotClass)]
 		#[class(init, base = Object)]
 		struct #ident {
@@ -297,5 +342,25 @@ fn generate_godot_object_struct(
 		}
 	};
 
-	Ok(a)
+	Ok(new_declaration)
+}
+
+fn is_vec(ty: &syn::Type) -> bool {
+	let syn::Type::Path(syn::TypePath { path, .. }) = ty else {
+		return false;
+	};
+
+	let Some(segment) = path.segments.last() else {
+		return false;
+	};
+
+	if segment.ident != "Vec" {
+		return false;
+	}
+
+	let syn::PathArguments::AngleBracketed(_) = segment.arguments else {
+		return false;
+	};
+
+	true
 }

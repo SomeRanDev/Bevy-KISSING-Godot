@@ -1,6 +1,6 @@
+use crate::components::gd_tracker_id::GodotNodeId;
 use crate::components::godot_node::GodotNode;
-use crate::components::godot_node_id::GodotNodeId;
-use crate::resources::all_nodes::AllNodes;
+use crate::resources::gd_tracker::AllNodes;
 
 use bevy::prelude::*;
 use godot::prelude::*;
