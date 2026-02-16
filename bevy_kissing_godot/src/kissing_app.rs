@@ -1,6 +1,6 @@
-use crate::prelude::*;
 use crate::kissing_component::kissing_component_registry::KissingComponentRegistry;
-use crate::resources::all_nodes::AllNodes;
+use crate::prelude::*;
+use crate::resources::gd_tracker::{AllNodes, AllResources};
 
 use std::collections::BTreeMap;
 use std::mem;
@@ -87,6 +87,7 @@ impl KissingApp {
 		let mut app = bevy::prelude::App::new();
 		app.add_plugins(crate::prelude::KissingCorePlugin);
 		app.insert_non_send_resource(AllNodes::default());
+		app.insert_non_send_resource(AllResources::default());
 		self.app = app.into();
 	}
 

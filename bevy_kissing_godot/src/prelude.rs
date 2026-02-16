@@ -9,11 +9,14 @@
 // ------------------
 
 pub use crate::bevy_entity_ready::BevyEntityReady;
-pub use crate::components::{godot_node::GodotNode, godot_node_id::GodotNodeId};
+pub use crate::components::{
+	gd_tracker_id::GodotNodeId, gd_tracker_id::GodotResourceId, godot_node::GodotNode,
+};
 pub use crate::kissing_component::kissing_component_field::KissingComponentField;
 pub use crate::plugins::kissing_core_plugin::KissingCorePlugin;
 pub use crate::resources::{
-	all_nodes::AllNodes, physics_process_delta::PhysicsProcessDelta, process_delta::ProcessDelta,
+	gd_tracker::AllNodes, gd_tracker::AllResources, physics_process_delta::PhysicsProcessDelta,
+	process_delta::ProcessDelta,
 };
 pub use crate::scedules::{PhysicsProcess, Process};
 pub use crate::types::{
