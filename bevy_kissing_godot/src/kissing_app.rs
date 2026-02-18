@@ -96,9 +96,10 @@ impl KissingApp {
 	/// Called immediately after the `#[kiss_bevy(_)]` function implemented by the user.
 	pub fn post_ready(&mut self, app_node: Gd<Node>, tree: Gd<SceneTree>) {
 		self.setup_scene_tree(tree.clone());
-		self.init_tree_responder(app_node, tree);
+		self.init_tree_responder(app_node, tree.clone());
 
 		if let Some(app) = self.app.as_mut() {
+			app.insert_non_send_resource(tree);
 			app.world_mut().run_schedule(bevy::prelude::Startup);
 		}
 	}
@@ -108,7 +109,6 @@ impl KissingApp {
 		let mut tree_responder = TreeResponder::new_alloc();
 		tree_responder.set_name("TreeResponder");
 		app_node.call_deferred("add_child", &[tree_responder.to_variant()]);
-		//app_node.add_child(&tree_responder);
 
 		tree.signals()
 			.node_added()
