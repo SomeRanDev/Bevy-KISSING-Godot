@@ -1,0 +1,10 @@
+[book]
+title = "Bevy💋Godot"
+authors = ["Maybee Rezbit"]
+language = "en"
+
+[output.html]
+additional-css = ["AdditionalThemes.css"]
+additional-js = ["AdditionalCode.js"]
+default-theme = "pinkrose"
+preferred-dark-theme = "pinkrose"
