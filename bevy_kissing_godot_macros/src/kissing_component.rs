@@ -1,7 +1,7 @@
 use proc_macro::TokenStream;
 use proc_macro2::Span;
-use quote::{ToTokens, quote};
-use syn::{Field, Ident, ItemStruct, Path, parse_macro_input, spanned::Spanned};
+use quote::quote;
+use syn::{Field, Ident, ItemStruct, Meta, Path, parse_macro_input, spanned::Spanned};
 
 use crate::utils::{
 	NodeOrResource, generate_godot_object_name_for_kissing_component_data, is_field_export,
@@ -135,21 +135,29 @@ fn take_export_attribute_if_exists(field: &mut Field) -> Option<Result<ExportDat
 	let Some(attr) = attr else {
 		return None;
 	};
-	let named_arguments = attr.parse_args_with(
-		|input: syn::parse::ParseStream| -> syn::Result<Vec<(Path, proc_macro2::TokenStream)>> {
-			let mut result = vec![];
-			while !input.is_empty() {
-				let path: Path = input.parse()?;
-				input.parse::<syn::Token![=]>()?;
-				let tokens: proc_macro2::TokenStream = input.parse()?;
-				result.push((path, tokens));
-				if input.peek(syn::Token![,]) {
-					input.parse::<syn::Token![,]>()?;
+
+	let named_arguments = if !matches!(attr.meta, Meta::List(_)) {
+		Ok(vec![])
+	} else {
+		attr.parse_args_with(
+			|input: syn::parse::ParseStream| -> syn::Result<Vec<(Path, Option<proc_macro2::TokenStream>)>> {
+				let mut result = vec![];
+				while !input.is_empty() {
+					let path: Path = input.parse()?;
+					if let Ok(_) = input.parse::<syn::Token![=]>() {
+						let tokens: proc_macro2::TokenStream = input.parse()?;
+						result.push((path, Some(tokens)));
+					} else {
+						result.push((path, None));
+					}
+					if input.peek(syn::Token![,]) {
+						input.parse::<syn::Token![,]>()?;
+					}
 				}
-			}
-			Ok(result)
-		},
-	);
+				Ok(result)
+			},
+		)
+	};
 
 	let named_arguments = match named_arguments {
 		Ok(named_arguments) => named_arguments,
@@ -167,14 +175,14 @@ fn take_export_attribute_if_exists(field: &mut Field) -> Option<Result<ExportDat
 		if a.0.is_ident("initial_value") {
 			result.initial_value = a.1.into();
 		} else {
-			let first_span = a.0.span();
-			return Some(Err(syn::Error::new(
-				first_span.join(a.1.span()).unwrap_or(first_span),
-				format!(
-					"Unsupported entry name \"{}\" on #[kissing_component]'s #[export]",
-					a.0.to_token_stream().to_string()
-				),
-			)));
+			// let first_span = a.0.span();
+			// return Some(Err(syn::Error::new(
+			// 	first_span.join(a.1.span()).unwrap_or(first_span),
+			// 	format!(
+			// 		"Unsupported entry name \"{}\" on #[kissing_component]'s #[export]",
+			// 		a.0.to_token_stream().to_string()
+			// 	),
+			// )));
 		}
 	}
 
@@ -204,22 +212,26 @@ fn take_export_node_or_resource_attribute_if_exists(
 		return None;
 	};
 
-	let valid_types = attr.parse_args_with(
-		|input: syn::parse::ParseStream| -> syn::Result<Vec<Ident>> {
-			let mut result = vec![];
-			while !input.is_empty() {
-				let path: Path = input.parse()?;
-				let Some(ident) = path.get_ident() else {
-					return Err(syn::Error::new(path.span(), "Must be an identifier"));
-				};
-				result.push(ident.clone());
-				if input.peek(syn::Token![,]) {
-					input.parse::<syn::Token![,]>()?;
+	let valid_types = if !matches!(attr.meta, Meta::List(_)) {
+		Ok(vec![])
+	} else {
+		attr.parse_args_with(
+			|input: syn::parse::ParseStream| -> syn::Result<Vec<Ident>> {
+				let mut result = vec![];
+				while !input.is_empty() {
+					let path: Path = input.parse()?;
+					let Some(ident) = path.get_ident() else {
+						return Err(syn::Error::new(path.span(), "Must be an identifier"));
+					};
+					result.push(ident.clone());
+					if input.peek(syn::Token![,]) {
+						input.parse::<syn::Token![,]>()?;
+					}
 				}
-			}
-			Ok(result)
-		},
-	);
+				Ok(result)
+			},
+		)
+	};
 
 	let valid_types = match valid_types {
 		Ok(valid_types) => valid_types,
@@ -300,8 +312,7 @@ fn generate_godot_object_struct(
 
 				// If filtering for specific types, get them as a hint string here.
 				let allow_types_string = if !data.types.is_empty() {
-					data
-						.types
+					data.types
 						.iter()
 						.map(|n| n.to_string())
 						.collect::<Vec<String>>()
@@ -310,7 +321,8 @@ fn generate_godot_object_struct(
 					match data.kind {
 						NodeOrResource::Node => "Node",
 						NodeOrResource::Resource => "Resource",
-					}.to_string()
+					}
+					.to_string()
 				};
 
 				// Generate the #[var] attribute.
