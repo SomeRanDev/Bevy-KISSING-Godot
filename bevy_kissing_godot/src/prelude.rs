@@ -28,8 +28,7 @@ pub use crate::types::{
 // -----------------
 
 pub use bevy_kissing_godot_macros::{
-	KissingComponent, KissingNode, kiss_bevy, kiss_node, kissing_component,
-	plugin_and_kissing_component,
+	KissingNode, kiss_bevy, kissing_component, plugin_and_kissing_component,
 };
 
 // -----------------------------
