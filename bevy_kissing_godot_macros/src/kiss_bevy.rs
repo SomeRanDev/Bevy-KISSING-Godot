@@ -27,7 +27,7 @@ pub(crate) fn kiss_bevy_impl(attr: TokenStream, item: TokenStream) -> TokenStrea
 		#[derive(godot::prelude::GodotClass)]
 		#[class(init, base = Node)]
 		pub struct #node_identifier {
-			base: Base<godot::prelude::Node>,
+			base: godot::obj::Base<godot::prelude::Node>,
 			app: bevy_kissing_godot::kissing_app::KissingApp,
 		}
 
@@ -38,6 +38,8 @@ pub(crate) fn kiss_bevy_impl(attr: TokenStream, item: TokenStream) -> TokenStrea
 		#[godot::prelude::godot_api]
 		impl godot::prelude::INode for #node_identifier {
 			fn ready(&mut self) {
+				use godot::obj::WithBaseField;
+
 				self.app.pre_ready();
 
 				#input_fn_name(self.app.get_app_mut());
