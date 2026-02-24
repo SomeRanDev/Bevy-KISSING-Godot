@@ -1,7 +1,7 @@
 @tool
 class_name BKGInspectorPlugin extends EditorInspectorPlugin
 
-const ComponentEditor = preload("res://addons/SomeRanDev.BevyKissingGodot/Scenes/ComponentEditor.tscn");
+const ComponentEditor = preload("res://addons/SomeRanDev.BevyKissingGodot/Scenes/ComponentEditor/ComponentEditor.tscn");
 
 func _can_handle(object: Object) -> bool:
 	return object is Node;

@@ -1,6 +1,6 @@
-[gd_scene load_steps=6 format=3 uid="uid://crrwcmxvksdmx"]
+[gd_scene format=3 uid="uid://crrwcmxvksdmx"]
 
-[ext_resource type="Script" uid="uid://dax26nyc14qs8" path="res://addons/SomeRanDev.BevyKissingGodot/GDScript/ComponentProperty.gd" id="1_hejb6"]
+[ext_resource type="Script" uid="uid://dax26nyc14qs8" path="res://addons/SomeRanDev.BevyKissingGodot/GDScript/ComponentEditor/ComponentProperty.gd" id="1_hejb6"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_hejb6"]
 content_margin_left = 12.0

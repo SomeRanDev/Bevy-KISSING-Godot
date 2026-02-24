@@ -1,0 +1,509 @@
+[gd_scene format=3 uid="uid://qru67jk88rxr"]
+
+[ext_resource type="Script" uid="uid://csx88t5cp2is0" path="res://addons/SomeRanDev.BevyKissingGodot/GDScript/ProjectGenerator/ProjectGeneratorDialog.gd" id="1_8drvy"]
+[ext_resource type="StyleBox" uid="uid://t132mp8bg6ah" path="res://addons/SomeRanDev.BevyKissingGodot/Scenes/ProjectGenerator/GroupBoxStyle.tres" id="2_msoej"]
+[ext_resource type="Script" uid="uid://c1ttkf4415rm8" path="res://addons/SomeRanDev.BevyKissingGodot/GDScript/ProjectGenerator/FileDialogButton.gd" id="2_pm1nu"]
+[ext_resource type="PackedScene" uid="uid://bkyhdgqqw3d81" path="res://addons/SomeRanDev.BevyKissingGodot/Scenes/ProjectGenerator/CrateVersionSelector.tscn" id="3_hledo"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_8drvy"]
+
+[sub_resource type="LabelSettings" id="LabelSettings_pm1nu"]
+font_color = Color(1, 0.45, 0.45, 1)
+
+[node name="ProjectGeneratorDialog" type="ConfirmationDialog" unique_id=1301517524 node_paths=PackedStringArray("rust_project_location", "extension_struct_name", "entry_symbol", "game_crate_name", "game_crate_folder_name", "autoload_location", "autoload_rust_name", "autoload_gdscript_name", "automatically_generate_gdextension", "gdextension_location", "gdextension_min_version_major", "gdextension_min_version_minor", "godot_crate_version", "bevy_crate_version", "bkg_crate_version", "generate_macro_package", "macro_crate_name", "macro_crate_folder_name", "generate_config_toml", "godot_editor_path", "clang_path", "error")]
+oversampling_override = 1.0
+title = "Generate Rust Project for Bevy💋Godot"
+position = Vector2i(0, 36)
+size = Vector2i(1200, 600)
+visible = true
+min_size = Vector2i(900, 480)
+ok_button_text = "Generate Rust Project"
+dialog_hide_on_ok = false
+script = ExtResource("1_8drvy")
+rust_project_location = NodePath("Margin/Vertical/ScrollContainer/HBoxContainer/LeftSide/BasicOptions/Vertical/BasicOptions/Grid/RustProjectLocationInputs/RustProjectLocationTextInput")
+extension_struct_name = NodePath("Margin/Vertical/ScrollContainer/HBoxContainer/LeftSide/BasicOptions/Vertical/BasicOptions/Grid/ExtensionStructNameInput")
+entry_symbol = NodePath("Margin/Vertical/ScrollContainer/HBoxContainer/LeftSide/BasicOptions/Vertical/BasicOptions/Grid/EntrySymbolTextInput")
+game_crate_name = NodePath("Margin/Vertical/ScrollContainer/HBoxContainer/LeftSide/BasicOptions/Vertical/BasicOptions/Grid/GamePackageNameInput")
+game_crate_folder_name = NodePath("Margin/Vertical/ScrollContainer/HBoxContainer/LeftSide/BasicOptions/Vertical/BasicOptions/Grid/GameFolderNameInput")
+autoload_location = NodePath("Margin/Vertical/ScrollContainer/HBoxContainer/LeftSide/AutoloadClass/Vertical/AutoloadClass/Grid/AutoloadLocationInputs/AutoloadLocationTextInput")
+autoload_rust_name = NodePath("Margin/Vertical/ScrollContainer/HBoxContainer/LeftSide/AutoloadClass/Vertical/AutoloadClass/Grid/AutoloadRustNameTextInput")
+autoload_gdscript_name = NodePath("Margin/Vertical/ScrollContainer/HBoxContainer/LeftSide/AutoloadClass/Vertical/AutoloadClass/Grid/AutoloadGDScriptNameTextInput")
+automatically_generate_gdextension = NodePath("Margin/Vertical/ScrollContainer/HBoxContainer/LeftSide/GenerateGDExtension/Vertical/GenerateGDExtensionLabel/AutomaticallyGenerateGDExtensionInput")
+gdextension_location = NodePath("Margin/Vertical/ScrollContainer/HBoxContainer/LeftSide/GenerateGDExtension/Vertical/GenerateGDExtension/Grid/GDExtensionLocationInputs/GDExtensionLocationTextInput")
+gdextension_min_version_major = NodePath("Margin/Vertical/ScrollContainer/HBoxContainer/LeftSide/GenerateGDExtension/Vertical/GenerateGDExtension/Grid/GDExtensionMinVersionInputs/GDExtensionMinVersionMajorInput")
+gdextension_min_version_minor = NodePath("Margin/Vertical/ScrollContainer/HBoxContainer/LeftSide/GenerateGDExtension/Vertical/GenerateGDExtension/Grid/GDExtensionMinVersionInputs/GDExtensionMinVersionMinorInput")
+godot_crate_version = NodePath("Margin/Vertical/ScrollContainer/HBoxContainer/RightSide/CrateVersions/Vertical/CrateVersions/Grid/GDExtVersion")
+bevy_crate_version = NodePath("Margin/Vertical/ScrollContainer/HBoxContainer/RightSide/CrateVersions/Vertical/CrateVersions/Grid/BevyVersion")
+bkg_crate_version = NodePath("Margin/Vertical/ScrollContainer/HBoxContainer/RightSide/CrateVersions/Vertical/CrateVersions/Grid/BKGVersion")
+generate_macro_package = NodePath("Margin/Vertical/ScrollContainer/HBoxContainer/RightSide/GenerateMacroPackage/Vertical/GenerateMacroPackageLabel/GenerateMacroPackageInput")
+macro_crate_name = NodePath("Margin/Vertical/ScrollContainer/HBoxContainer/RightSide/GenerateMacroPackage/Vertical/GenerateMacroPackage/Grid/MacroPackageNameTextInput")
+macro_crate_folder_name = NodePath("Margin/Vertical/ScrollContainer/HBoxContainer/RightSide/GenerateMacroPackage/Vertical/GenerateMacroPackage/Grid/MacroFolderNameTextInput")
+generate_config_toml = NodePath("Margin/Vertical/ScrollContainer/HBoxContainer/RightSide/GenerateConfigToml/Vertical/GenerateConfigTomlLabel/GenerateConfigTomlInput")
+godot_editor_path = NodePath("Margin/Vertical/ScrollContainer/HBoxContainer/RightSide/GenerateConfigToml/Vertical/GenerateConfigToml/Grid/GodotEditorPathTextInputs/GodotEditorPathTextTextInput")
+clang_path = NodePath("Margin/Vertical/ScrollContainer/HBoxContainer/RightSide/GenerateConfigToml/Vertical/GenerateConfigToml/Grid/LibClangPathInputs/LibClangPathTextInput")
+error = NodePath("Margin/Vertical/Error")
+
+[node name="Margin" type="MarginContainer" parent="." unique_id=959759088]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 8.0
+offset_top = 8.0
+offset_right = -8.0
+offset_bottom = -49.0
+grow_horizontal = 2
+grow_vertical = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_override_constants/margin_left = 8
+theme_override_constants/margin_right = 8
+theme_override_constants/margin_bottom = 16
+
+[node name="Vertical" type="VBoxContainer" parent="Margin" unique_id=70038188]
+layout_mode = 2
+
+[node name="ScrollContainer" type="ScrollContainer" parent="Margin/Vertical" unique_id=1289598912]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="HBoxContainer" type="HBoxContainer" parent="Margin/Vertical/ScrollContainer" unique_id=312406129]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 16
+
+[node name="LeftSide" type="VBoxContainer" parent="Margin/Vertical/ScrollContainer/HBoxContainer" unique_id=704102653]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_override_constants/separation = 16
+
+[node name="BasicOptions" type="PanelContainer" parent="Margin/Vertical/ScrollContainer/HBoxContainer/LeftSide" unique_id=1610735106]
+layout_mode = 2
+theme_override_styles/panel = ExtResource("2_msoej")
+
+[node name="Vertical" type="VBoxContainer" parent="Margin/Vertical/ScrollContainer/HBoxContainer/LeftSide/BasicOptions" unique_id=975306045]
+layout_mode = 2
+
+[node name="BasicOptionsLabel" type="RichTextLabel" parent="Margin/Vertical/ScrollContainer/HBoxContainer/LeftSide/BasicOptions/Vertical" unique_id=444195597]
+layout_mode = 2
+theme_override_styles/normal = SubResource("StyleBoxEmpty_8drvy")
+bbcode_enabled = true
+text = "[b]Basic Options:[/b]"
+fit_content = true
+scroll_active = false
+autowrap_mode = 0
+vertical_alignment = 1
+
+[node name="BasicOptions" type="MarginContainer" parent="Margin/Vertical/ScrollContainer/HBoxContainer/LeftSide/BasicOptions/Vertical" unique_id=337724620]
+layout_mode = 2
+theme_override_constants/margin_left = 16
+
+[node name="Grid" type="GridContainer" parent="Margin/Vertical/ScrollContainer/HBoxContainer/LeftSide/BasicOptions/Vertical/BasicOptions" unique_id=645660830]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_override_constants/h_separation = 16
+theme_override_constants/v_separation = 4
+columns = 2
+
+[node name="RustProjectLocationLabel" type="Label" parent="Margin/Vertical/ScrollContainer/HBoxContainer/LeftSide/BasicOptions/Vertical/BasicOptions/Grid" unique_id=1808883770]
+layout_mode = 2
+text = "Rust Project Location"
+
+[node name="RustProjectLocationInputs" type="HBoxContainer" parent="Margin/Vertical/ScrollContainer/HBoxContainer/LeftSide/BasicOptions/Vertical/BasicOptions/Grid" unique_id=1720350928]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 0
+
+[node name="RustProjectLocationTextInput" type="LineEdit" parent="Margin/Vertical/ScrollContainer/HBoxContainer/LeftSide/BasicOptions/Vertical/BasicOptions/Grid/RustProjectLocationInputs" unique_id=1763458075]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="RustProjectLocationButton" type="Button" parent="Margin/Vertical/ScrollContainer/HBoxContainer/LeftSide/BasicOptions/Vertical/BasicOptions/Grid/RustProjectLocationInputs" unique_id=912106629 node_paths=PackedStringArray("line_edit")]
+layout_mode = 2
+text = "..."
+script = ExtResource("2_pm1nu")
+line_edit = NodePath("../RustProjectLocationTextInput")
+is_directory = true
+relative_to_project = true
+
+[node name="ExtensionStructNameLabel" type="Label" parent="Margin/Vertical/ScrollContainer/HBoxContainer/LeftSide/BasicOptions/Vertical/BasicOptions/Grid" unique_id=543471294]
+layout_mode = 2
+text = "Extension Struct Name"
+
+[node name="ExtensionStructNameInput" type="LineEdit" parent="Margin/Vertical/ScrollContainer/HBoxContainer/LeftSide/BasicOptions/Vertical/BasicOptions/Grid" unique_id=1044910864]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="EntrySymbolLabel" type="Label" parent="Margin/Vertical/ScrollContainer/HBoxContainer/LeftSide/BasicOptions/Vertical/BasicOptions/Grid" unique_id=1611730549]
+layout_mode = 2
+text = "Entry Symbol Name"
+
+[node name="EntrySymbolTextInput" type="LineEdit" parent="Margin/Vertical/ScrollContainer/HBoxContainer/LeftSide/BasicOptions/Vertical/BasicOptions/Grid" unique_id=684120507]
+layout_mode = 2
+size_flags_horizontal = 3
+placeholder_text = "Leave blank for default..."
+
+[node name="GamePackageNameLabel" type="Label" parent="Margin/Vertical/ScrollContainer/HBoxContainer/LeftSide/BasicOptions/Vertical/BasicOptions/Grid" unique_id=362331501]
+layout_mode = 2
+text = "Game Crate Name"
+
+[node name="GamePackageNameInput" type="LineEdit" parent="Margin/Vertical/ScrollContainer/HBoxContainer/LeftSide/BasicOptions/Vertical/BasicOptions/Grid" unique_id=2078604497]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="GameFolderNameLabel" type="Label" parent="Margin/Vertical/ScrollContainer/HBoxContainer/LeftSide/BasicOptions/Vertical/BasicOptions/Grid" unique_id=335275180]
+layout_mode = 2
+text = "Game Crate Folder Name"
+
+[node name="GameFolderNameInput" type="LineEdit" parent="Margin/Vertical/ScrollContainer/HBoxContainer/LeftSide/BasicOptions/Vertical/BasicOptions/Grid" unique_id=1363684006]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="AutoloadClass" type="PanelContainer" parent="Margin/Vertical/ScrollContainer/HBoxContainer/LeftSide" unique_id=1646743535]
+layout_mode = 2
+theme_override_styles/panel = ExtResource("2_msoej")
+
+[node name="Vertical" type="VBoxContainer" parent="Margin/Vertical/ScrollContainer/HBoxContainer/LeftSide/AutoloadClass" unique_id=868295586]
+layout_mode = 2
+
+[node name="AutoloadClassLabel" type="RichTextLabel" parent="Margin/Vertical/ScrollContainer/HBoxContainer/LeftSide/AutoloadClass/Vertical" unique_id=409053498]
+layout_mode = 2
+theme_override_styles/normal = SubResource("StyleBoxEmpty_8drvy")
+bbcode_enabled = true
+text = "[b]Autoload Class:[/b]"
+fit_content = true
+scroll_active = false
+autowrap_mode = 0
+vertical_alignment = 1
+
+[node name="AutoloadClass" type="MarginContainer" parent="Margin/Vertical/ScrollContainer/HBoxContainer/LeftSide/AutoloadClass/Vertical" unique_id=1292981205]
+layout_mode = 2
+theme_override_constants/margin_left = 16
+
+[node name="Grid" type="GridContainer" parent="Margin/Vertical/ScrollContainer/HBoxContainer/LeftSide/AutoloadClass/Vertical/AutoloadClass" unique_id=1114517583]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_override_constants/h_separation = 16
+theme_override_constants/v_separation = 4
+columns = 2
+
+[node name="AutoloadLocationLabel" type="Label" parent="Margin/Vertical/ScrollContainer/HBoxContainer/LeftSide/AutoloadClass/Vertical/AutoloadClass/Grid" unique_id=1955073672]
+layout_mode = 2
+text = "Autoload GDScript File Location"
+
+[node name="AutoloadLocationInputs" type="HBoxContainer" parent="Margin/Vertical/ScrollContainer/HBoxContainer/LeftSide/AutoloadClass/Vertical/AutoloadClass/Grid" unique_id=1583181809]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 0
+
+[node name="AutoloadLocationTextInput" type="LineEdit" parent="Margin/Vertical/ScrollContainer/HBoxContainer/LeftSide/AutoloadClass/Vertical/AutoloadClass/Grid/AutoloadLocationInputs" unique_id=901750049]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="AutoloadLocationButton" type="Button" parent="Margin/Vertical/ScrollContainer/HBoxContainer/LeftSide/AutoloadClass/Vertical/AutoloadClass/Grid/AutoloadLocationInputs" unique_id=2113618561 node_paths=PackedStringArray("line_edit")]
+layout_mode = 2
+text = "..."
+script = ExtResource("2_pm1nu")
+line_edit = NodePath("../AutoloadLocationTextInput")
+is_save = true
+project_only = true
+filter = "*.gd"
+
+[node name="AutoloadRustNameLabel" type="Label" parent="Margin/Vertical/ScrollContainer/HBoxContainer/LeftSide/AutoloadClass/Vertical/AutoloadClass/Grid" unique_id=1632211457]
+layout_mode = 2
+text = "Autoload Class Rust Name"
+
+[node name="AutoloadRustNameTextInput" type="LineEdit" parent="Margin/Vertical/ScrollContainer/HBoxContainer/LeftSide/AutoloadClass/Vertical/AutoloadClass/Grid" unique_id=1230180012]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="AutoloadGDScriptNameLabel" type="Label" parent="Margin/Vertical/ScrollContainer/HBoxContainer/LeftSide/AutoloadClass/Vertical/AutoloadClass/Grid" unique_id=134377597]
+layout_mode = 2
+text = "Autoload Class GDScript Name"
+
+[node name="AutoloadGDScriptNameTextInput" type="LineEdit" parent="Margin/Vertical/ScrollContainer/HBoxContainer/LeftSide/AutoloadClass/Vertical/AutoloadClass/Grid" unique_id=1513234922]
+layout_mode = 2
+size_flags_horizontal = 3
+placeholder_text = "Leave blank for no name..."
+
+[node name="GenerateGDExtension" type="PanelContainer" parent="Margin/Vertical/ScrollContainer/HBoxContainer/LeftSide" unique_id=1574599533]
+layout_mode = 2
+theme_override_styles/panel = ExtResource("2_msoej")
+
+[node name="Vertical" type="VBoxContainer" parent="Margin/Vertical/ScrollContainer/HBoxContainer/LeftSide/GenerateGDExtension" unique_id=524624016]
+layout_mode = 2
+
+[node name="GenerateGDExtensionLabel" type="HBoxContainer" parent="Margin/Vertical/ScrollContainer/HBoxContainer/LeftSide/GenerateGDExtension/Vertical" unique_id=124418242]
+layout_mode = 2
+
+[node name="AutomaticallyGenerateGDExtensionInput" type="CheckBox" parent="Margin/Vertical/ScrollContainer/HBoxContainer/LeftSide/GenerateGDExtension/Vertical/GenerateGDExtensionLabel" unique_id=326259043]
+layout_mode = 2
+
+[node name="AutomaticallyGenerateGDExtensionLabel" type="RichTextLabel" parent="Margin/Vertical/ScrollContainer/HBoxContainer/LeftSide/GenerateGDExtension/Vertical/GenerateGDExtensionLabel" unique_id=816420951]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_styles/normal = SubResource("StyleBoxEmpty_8drvy")
+bbcode_enabled = true
+text = "[b]Automatically Generate .gdextension (with gdext-gen):[/b]"
+fit_content = true
+scroll_active = false
+autowrap_mode = 0
+vertical_alignment = 1
+
+[node name="GenerateGDExtension" type="MarginContainer" parent="Margin/Vertical/ScrollContainer/HBoxContainer/LeftSide/GenerateGDExtension/Vertical" unique_id=271076972]
+layout_mode = 2
+theme_override_constants/margin_left = 16
+
+[node name="Grid" type="GridContainer" parent="Margin/Vertical/ScrollContainer/HBoxContainer/LeftSide/GenerateGDExtension/Vertical/GenerateGDExtension" unique_id=867690659]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_override_constants/h_separation = 16
+theme_override_constants/v_separation = 4
+columns = 2
+
+[node name="GDExtensionLocationLabel" type="Label" parent="Margin/Vertical/ScrollContainer/HBoxContainer/LeftSide/GenerateGDExtension/Vertical/GenerateGDExtension/Grid" unique_id=936499619]
+layout_mode = 2
+text = ".gdextension Location"
+
+[node name="GDExtensionLocationInputs" type="HBoxContainer" parent="Margin/Vertical/ScrollContainer/HBoxContainer/LeftSide/GenerateGDExtension/Vertical/GenerateGDExtension/Grid" unique_id=1786415170]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 0
+
+[node name="GDExtensionLocationTextInput" type="LineEdit" parent="Margin/Vertical/ScrollContainer/HBoxContainer/LeftSide/GenerateGDExtension/Vertical/GenerateGDExtension/Grid/GDExtensionLocationInputs" unique_id=444310487]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="GDExtensionLocationButton" type="Button" parent="Margin/Vertical/ScrollContainer/HBoxContainer/LeftSide/GenerateGDExtension/Vertical/GenerateGDExtension/Grid/GDExtensionLocationInputs" unique_id=582714953 node_paths=PackedStringArray("line_edit")]
+layout_mode = 2
+text = "..."
+script = ExtResource("2_pm1nu")
+line_edit = NodePath("../GDExtensionLocationTextInput")
+is_save = true
+project_only = true
+filter = "*.gdextension"
+
+[node name="GDExtensionMinVersionLabel" type="Label" parent="Margin/Vertical/ScrollContainer/HBoxContainer/LeftSide/GenerateGDExtension/Vertical/GenerateGDExtension/Grid" unique_id=1893074065]
+layout_mode = 2
+text = "Compatbility Minimum"
+
+[node name="GDExtensionMinVersionInputs" type="HBoxContainer" parent="Margin/Vertical/ScrollContainer/HBoxContainer/LeftSide/GenerateGDExtension/Vertical/GenerateGDExtension/Grid" unique_id=369733595]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 8
+
+[node name="GDExtensionMinVersionMajorInput" type="SpinBox" parent="Margin/Vertical/ScrollContainer/HBoxContainer/LeftSide/GenerateGDExtension/Vertical/GenerateGDExtension/Grid/GDExtensionMinVersionInputs" unique_id=1686467379]
+layout_mode = 2
+size_flags_horizontal = 3
+rounded = true
+
+[node name="Label" type="Label" parent="Margin/Vertical/ScrollContainer/HBoxContainer/LeftSide/GenerateGDExtension/Vertical/GenerateGDExtension/Grid/GDExtensionMinVersionInputs" unique_id=1716232967]
+layout_mode = 2
+text = "."
+
+[node name="GDExtensionMinVersionMinorInput" type="SpinBox" parent="Margin/Vertical/ScrollContainer/HBoxContainer/LeftSide/GenerateGDExtension/Vertical/GenerateGDExtension/Grid/GDExtensionMinVersionInputs" unique_id=1324348731]
+layout_mode = 2
+size_flags_horizontal = 3
+rounded = true
+
+[node name="RightSide" type="VBoxContainer" parent="Margin/Vertical/ScrollContainer/HBoxContainer" unique_id=1490851529]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_override_constants/separation = 16
+
+[node name="CrateVersions" type="PanelContainer" parent="Margin/Vertical/ScrollContainer/HBoxContainer/RightSide" unique_id=1355205734]
+layout_mode = 2
+theme_override_styles/panel = ExtResource("2_msoej")
+
+[node name="Vertical" type="VBoxContainer" parent="Margin/Vertical/ScrollContainer/HBoxContainer/RightSide/CrateVersions" unique_id=1312507803]
+layout_mode = 2
+
+[node name="CrateVersionsLabel" type="RichTextLabel" parent="Margin/Vertical/ScrollContainer/HBoxContainer/RightSide/CrateVersions/Vertical" unique_id=855635192]
+layout_mode = 2
+theme_override_styles/normal = SubResource("StyleBoxEmpty_8drvy")
+bbcode_enabled = true
+text = "[b]Crate Versions:[/b]"
+fit_content = true
+scroll_active = false
+autowrap_mode = 0
+vertical_alignment = 1
+
+[node name="CrateVersions" type="MarginContainer" parent="Margin/Vertical/ScrollContainer/HBoxContainer/RightSide/CrateVersions/Vertical" unique_id=317832127]
+layout_mode = 2
+theme_override_constants/margin_left = 16
+
+[node name="Grid" type="GridContainer" parent="Margin/Vertical/ScrollContainer/HBoxContainer/RightSide/CrateVersions/Vertical/CrateVersions" unique_id=350063819]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_override_constants/h_separation = 16
+theme_override_constants/v_separation = 4
+columns = 2
+
+[node name="GDExtVersionLabel" type="Label" parent="Margin/Vertical/ScrollContainer/HBoxContainer/RightSide/CrateVersions/Vertical/CrateVersions/Grid" unique_id=643591253]
+layout_mode = 2
+text = "Godot Crate Version"
+
+[node name="GDExtVersion" parent="Margin/Vertical/ScrollContainer/HBoxContainer/RightSide/CrateVersions/Vertical/CrateVersions/Grid" unique_id=899854320 instance=ExtResource("3_hledo")]
+layout_mode = 2
+size_flags_horizontal = 3
+default_kind_index = 1
+default_version = "0.4.5"
+default_git = "https://github.com/godot-rust/gdext"
+
+[node name="BevyVersionLabel" type="Label" parent="Margin/Vertical/ScrollContainer/HBoxContainer/RightSide/CrateVersions/Vertical/CrateVersions/Grid" unique_id=946685088]
+layout_mode = 2
+text = "Bevy Crate Version"
+
+[node name="BevyVersion" parent="Margin/Vertical/ScrollContainer/HBoxContainer/RightSide/CrateVersions/Vertical/CrateVersions/Grid" unique_id=1730949222 instance=ExtResource("3_hledo")]
+layout_mode = 2
+size_flags_horizontal = 3
+default_version = "0.18.0"
+default_git = "https://github.com/bevyengine/bevy"
+
+[node name="BKGVersionLabel" type="Label" parent="Margin/Vertical/ScrollContainer/HBoxContainer/RightSide/CrateVersions/Vertical/CrateVersions/Grid" unique_id=1788121089]
+layout_mode = 2
+text = "Bevy💋Godot Version"
+
+[node name="BKGVersion" parent="Margin/Vertical/ScrollContainer/HBoxContainer/RightSide/CrateVersions/Vertical/CrateVersions/Grid" unique_id=1498016991 instance=ExtResource("3_hledo")]
+layout_mode = 2
+size_flags_horizontal = 3
+default_kind_index = 1
+default_git = "https://github.com/SomeRanDev/bevy-KISSING-godot"
+
+[node name="GenerateMacroPackage" type="PanelContainer" parent="Margin/Vertical/ScrollContainer/HBoxContainer/RightSide" unique_id=570163276]
+layout_mode = 2
+theme_override_styles/panel = ExtResource("2_msoej")
+
+[node name="Vertical" type="VBoxContainer" parent="Margin/Vertical/ScrollContainer/HBoxContainer/RightSide/GenerateMacroPackage" unique_id=663399518]
+layout_mode = 2
+
+[node name="GenerateMacroPackageLabel" type="HBoxContainer" parent="Margin/Vertical/ScrollContainer/HBoxContainer/RightSide/GenerateMacroPackage/Vertical" unique_id=1266096476]
+layout_mode = 2
+
+[node name="GenerateMacroPackageInput" type="CheckBox" parent="Margin/Vertical/ScrollContainer/HBoxContainer/RightSide/GenerateMacroPackage/Vertical/GenerateMacroPackageLabel" unique_id=744451711]
+layout_mode = 2
+
+[node name="GenerateMacroPackageLabel" type="RichTextLabel" parent="Margin/Vertical/ScrollContainer/HBoxContainer/RightSide/GenerateMacroPackage/Vertical/GenerateMacroPackageLabel" unique_id=1260455350]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_styles/normal = SubResource("StyleBoxEmpty_8drvy")
+bbcode_enabled = true
+text = "[b]Generate Macro Package:[/b]"
+fit_content = true
+scroll_active = false
+autowrap_mode = 0
+vertical_alignment = 1
+
+[node name="GenerateMacroPackage" type="MarginContainer" parent="Margin/Vertical/ScrollContainer/HBoxContainer/RightSide/GenerateMacroPackage/Vertical" unique_id=1530792013]
+layout_mode = 2
+theme_override_constants/margin_left = 16
+
+[node name="Grid" type="GridContainer" parent="Margin/Vertical/ScrollContainer/HBoxContainer/RightSide/GenerateMacroPackage/Vertical/GenerateMacroPackage" unique_id=1529143199]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_override_constants/h_separation = 16
+theme_override_constants/v_separation = 4
+columns = 2
+
+[node name="MacroPackageNameLabel" type="Label" parent="Margin/Vertical/ScrollContainer/HBoxContainer/RightSide/GenerateMacroPackage/Vertical/GenerateMacroPackage/Grid" unique_id=1128225020]
+layout_mode = 2
+text = "Macro Crate Name"
+
+[node name="MacroPackageNameTextInput" type="LineEdit" parent="Margin/Vertical/ScrollContainer/HBoxContainer/RightSide/GenerateMacroPackage/Vertical/GenerateMacroPackage/Grid" unique_id=61276485]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="MacroFolderNameLabel" type="Label" parent="Margin/Vertical/ScrollContainer/HBoxContainer/RightSide/GenerateMacroPackage/Vertical/GenerateMacroPackage/Grid" unique_id=26942914]
+layout_mode = 2
+text = "Macro Crate Folder Name"
+
+[node name="MacroFolderNameTextInput" type="LineEdit" parent="Margin/Vertical/ScrollContainer/HBoxContainer/RightSide/GenerateMacroPackage/Vertical/GenerateMacroPackage/Grid" unique_id=282246092]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="GenerateConfigToml" type="PanelContainer" parent="Margin/Vertical/ScrollContainer/HBoxContainer/RightSide" unique_id=572026293]
+layout_mode = 2
+theme_override_styles/panel = ExtResource("2_msoej")
+
+[node name="Vertical" type="VBoxContainer" parent="Margin/Vertical/ScrollContainer/HBoxContainer/RightSide/GenerateConfigToml" unique_id=600159363]
+layout_mode = 2
+
+[node name="GenerateConfigTomlLabel" type="HBoxContainer" parent="Margin/Vertical/ScrollContainer/HBoxContainer/RightSide/GenerateConfigToml/Vertical" unique_id=1588662492]
+layout_mode = 2
+
+[node name="GenerateConfigTomlInput" type="CheckBox" parent="Margin/Vertical/ScrollContainer/HBoxContainer/RightSide/GenerateConfigToml/Vertical/GenerateConfigTomlLabel" unique_id=762151647]
+layout_mode = 2
+
+[node name="GenerateConfigTomlLabel" type="RichTextLabel" parent="Margin/Vertical/ScrollContainer/HBoxContainer/RightSide/GenerateConfigToml/Vertical/GenerateConfigTomlLabel" unique_id=1834747276]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_styles/normal = SubResource("StyleBoxEmpty_8drvy")
+bbcode_enabled = true
+text = "[b]Generate .cargo/config.toml:[/b]"
+fit_content = true
+scroll_active = false
+autowrap_mode = 0
+vertical_alignment = 1
+
+[node name="GenerateConfigToml" type="MarginContainer" parent="Margin/Vertical/ScrollContainer/HBoxContainer/RightSide/GenerateConfigToml/Vertical" unique_id=1717051298]
+layout_mode = 2
+theme_override_constants/margin_left = 16
+
+[node name="Grid" type="GridContainer" parent="Margin/Vertical/ScrollContainer/HBoxContainer/RightSide/GenerateConfigToml/Vertical/GenerateConfigToml" unique_id=1816259332]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_override_constants/h_separation = 16
+theme_override_constants/v_separation = 4
+columns = 2
+
+[node name="GodotEditorPathLabel" type="Label" parent="Margin/Vertical/ScrollContainer/HBoxContainer/RightSide/GenerateConfigToml/Vertical/GenerateConfigToml/Grid" unique_id=68143128]
+layout_mode = 2
+text = "Godot Editor Path"
+
+[node name="GodotEditorPathTextInputs" type="HBoxContainer" parent="Margin/Vertical/ScrollContainer/HBoxContainer/RightSide/GenerateConfigToml/Vertical/GenerateConfigToml/Grid" unique_id=1810546321]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 0
+
+[node name="GodotEditorPathTextTextInput" type="LineEdit" parent="Margin/Vertical/ScrollContainer/HBoxContainer/RightSide/GenerateConfigToml/Vertical/GenerateConfigToml/Grid/GodotEditorPathTextInputs" unique_id=241461048]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="GodotEditorPathTextButton" type="Button" parent="Margin/Vertical/ScrollContainer/HBoxContainer/RightSide/GenerateConfigToml/Vertical/GenerateConfigToml/Grid/GodotEditorPathTextInputs" unique_id=2123612598 node_paths=PackedStringArray("line_edit")]
+layout_mode = 2
+text = "..."
+script = ExtResource("2_pm1nu")
+line_edit = NodePath("../GodotEditorPathTextTextInput")
+
+[node name="LibClangPathLabel" type="Label" parent="Margin/Vertical/ScrollContainer/HBoxContainer/RightSide/GenerateConfigToml/Vertical/GenerateConfigToml/Grid" unique_id=1964630546]
+layout_mode = 2
+text = "Clang Path"
+
+[node name="LibClangPathInputs" type="HBoxContainer" parent="Margin/Vertical/ScrollContainer/HBoxContainer/RightSide/GenerateConfigToml/Vertical/GenerateConfigToml/Grid" unique_id=1643565398]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 0
+
+[node name="LibClangPathTextInput" type="LineEdit" parent="Margin/Vertical/ScrollContainer/HBoxContainer/RightSide/GenerateConfigToml/Vertical/GenerateConfigToml/Grid/LibClangPathInputs" unique_id=515623551]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="LibClangPathButton" type="Button" parent="Margin/Vertical/ScrollContainer/HBoxContainer/RightSide/GenerateConfigToml/Vertical/GenerateConfigToml/Grid/LibClangPathInputs" unique_id=270848592 node_paths=PackedStringArray("line_edit")]
+layout_mode = 2
+text = "..."
+script = ExtResource("2_pm1nu")
+line_edit = NodePath("../LibClangPathTextInput")
+is_directory = true
+
+[node name="Error" type="Label" parent="Margin/Vertical" unique_id=175754824]
+layout_mode = 2
+label_settings = SubResource("LabelSettings_pm1nu")
+horizontal_alignment = 1
+vertical_alignment = 1

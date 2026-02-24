@@ -3,7 +3,7 @@ class_name BKGComponentEditor extends EditorProperty
 
 # ---
 
-const COMPONENT_DIALOG = preload("res://addons/SomeRanDev.BevyKissingGodot/Scenes/ComponentDialog.tscn");
+const COMPONENT_DIALOG = preload("res://addons/SomeRanDev.BevyKissingGodot/Scenes/ComponentEditor/ComponentDialog.tscn");
 
 # ---
 
