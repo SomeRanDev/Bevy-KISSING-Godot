@@ -124,7 +124,7 @@ impl KissingComponentRegistry {
 			let Ok(key_string_name) = key.try_to::<String>() else {
 				continue;
 			};
-			let Some(value) = dictionary.get(key) else {
+			let Some(value) = dictionary.get(&key) else {
 				continue;
 			};
 			values.insert(key_string_name.to_string(), value);
