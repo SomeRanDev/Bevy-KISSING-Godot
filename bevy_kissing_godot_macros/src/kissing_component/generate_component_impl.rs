@@ -2,6 +2,7 @@ use proc_macro2::TokenStream as TokenStream2;
 use quote::{ToTokens, quote};
 use syn::{Attribute, Expr, ItemStruct, Lit, Meta, MetaNameValue};
 
+use crate::kissing_component::KissingComponentArguments;
 use crate::utils::NodeOrResource;
 use crate::utils::generate_godot_object_name_for_kissing_component_data;
 use crate::utils::is_field_export;
@@ -30,7 +31,10 @@ fn get_doc_comment_from_attrs(attrs: &Vec<Attribute>) -> String {
 
 /// Generates the component's impl providing functions and metadata to allow
 /// for a Bevy component to be accessible from the Godot editor.
-pub(super) fn generate_component_impl(struct_input: ItemStruct) -> TokenStream2 {
+pub(super) fn generate_component_impl(
+	struct_input: ItemStruct,
+	args: KissingComponentArguments,
+) -> TokenStream2 {
 	let ident = struct_input.ident;
 
 	let component_docs = get_doc_comment_from_attrs(&struct_input.attrs);
@@ -159,6 +163,13 @@ pub(super) fn generate_component_impl(struct_input: ItemStruct) -> TokenStream2 
 	// Get the name of the Godot class used by the editor to obtain the component data.
 	let data_class_name = generate_godot_object_name_for_kissing_component_data(&ident);
 
+	// Get tokens for what happens after the construction of the component `c`.
+	let post_construction = if let Some(on_construct) = args.on_construct {
+		quote! { #on_construct(&mut c); }
+	} else {
+		quote! {}
+	};
+
 	// Add additional static fields and add [kissing_component_data] function to inventory.
 	quote! {
 		impl #ident {
@@ -196,7 +207,8 @@ pub(super) fn generate_component_impl(struct_input: ItemStruct) -> TokenStream2 
 					NonSendMut<bevy_kissing_godot::prelude::AllResources>,
 				)> = bevy::ecs::system::SystemState::new(world);
 				let (all_nodes, all_resources) = system_state.get_mut(world);
-				let c = Self::from_editor_fields(node, &mut all_nodes.into_inner(), &mut all_resources.into_inner(), fields);
+				let mut c = Self::from_editor_fields(node, &mut all_nodes.into_inner(), &mut all_resources.into_inner(), fields);
+				#post_construction
 				let Ok(mut e) = world.get_entity_mut(*entity) else { return false };
 				e.insert(c);
 				true
