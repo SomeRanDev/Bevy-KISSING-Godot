@@ -23,7 +23,7 @@ One *may* assume the name exists to reduce confusion with Godot-Bevy and disting
 
 ## Bevy components in the Godot editor???
 
-Using a Godot addon, the Godot's Nodes' inspectors now have a component list you can add your Bevy components to. Simply add the `#[kissing_component]` attribute and `KissingComponent` derive to a Bevy component to make it available!
+Using a Godot addon, the Godot's Nodes' inspectors now have a component list you can add your Bevy components to. Simply add the `#[kissing_component]` attribute to a Bevy component to make it available!
 
 You can use `#[export]` to allow properties to be modified in the editor.
 
@@ -34,7 +34,7 @@ Check out the [Components](./components.html) section for more details.
 # use bevy::prelude::*;
 # use bevy_kissing_godot::prelude::*;
 # 
-#[derive(Component, KissingComponent)]
+#[derive(Component)]
 #[kissing_component]
 struct Grid {
 	#[export(initial_value = Vector2i::new(10, 10))]
