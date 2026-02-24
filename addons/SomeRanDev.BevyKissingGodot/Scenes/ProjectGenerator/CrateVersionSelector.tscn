@@ -1,0 +1,35 @@
+[gd_scene format=3 uid="uid://bkyhdgqqw3d81"]
+
+[ext_resource type="Script" uid="uid://fbm7blxbgna5" path="res://addons/SomeRanDev.BevyKissingGodot/GDScript/ProjectGenerator/CrateVersionSelector.gd" id="1_uiakv"]
+[ext_resource type="Script" uid="uid://c1ttkf4415rm8" path="res://addons/SomeRanDev.BevyKissingGodot/GDScript/ProjectGenerator/FileDialogButton.gd" id="2_w6tgv"]
+
+[node name="CrateVersionSelector" type="HBoxContainer" unique_id=899854320]
+theme_override_constants/separation = 16
+script = ExtResource("1_uiakv")
+
+[node name="Kind" type="OptionButton" parent="." unique_id=1300088232]
+layout_mode = 2
+selected = 0
+item_count = 3
+popup/item_0/text = "Version"
+popup/item_0/id = 0
+popup/item_1/text = "Git"
+popup/item_1/id = 1
+popup/item_2/text = "Path"
+popup/item_2/id = 2
+
+[node name="TextContainer" type="HBoxContainer" parent="." unique_id=1328347460]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 0
+
+[node name="Text" type="LineEdit" parent="TextContainer" unique_id=1715642065]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="FileDialogButton" type="Button" parent="TextContainer" unique_id=461235467 node_paths=PackedStringArray("line_edit")]
+layout_mode = 2
+text = "..."
+script = ExtResource("2_w6tgv")
+line_edit = NodePath("../Text")
+is_directory = true

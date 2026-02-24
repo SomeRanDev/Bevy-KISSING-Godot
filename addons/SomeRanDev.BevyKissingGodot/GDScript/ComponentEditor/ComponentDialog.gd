@@ -3,7 +3,7 @@ class_name BKGAddDialog extends ConfirmationDialog
 
 # ---
 
-const PROPERTY = preload("res://addons/SomeRanDev.BevyKissingGodot/Scenes/ComponentProperty.tscn");
+const PROPERTY = preload("res://addons/SomeRanDev.BevyKissingGodot/Scenes/ComponentEditor/ComponentProperty.tscn");
 
 # ---
 
