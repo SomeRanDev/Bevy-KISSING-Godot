@@ -19,12 +19,12 @@ This is a completely valid and usable component in Bevy💋Godot! Add it to any 
 
 In Bevy💋Godot, a "kissing" component is a component that is exposed and visible in the Godot editor (it crosses the boundary and kisses Godot).
 
-To make a "kissing" component, just add the `kissing_component` attribute and derive `KissingComponent`.
+To make a "kissing" component, just add the `kissing_component` attribute.
 ```rust,noplayground
 # use bevy::prelude::*;
 # use bevy_kissing_godot::prelude::*;
 # 
-#[derive(Component, KissingComponent)]
+#[derive(Component)]
 #[kissing_component]
 struct Health {
 	current_hp: u32,
@@ -42,7 +42,7 @@ To allow the fields of your kissing component to be editable in Godot, you use t
 # use bevy::prelude::*;
 # use bevy_kissing_godot::prelude::*;
 # 
-#[derive(Component, KissingComponent)]
+#[derive(Component)]
 #[kissing_component]
 struct Health {
 	#[export(enum = (Segmented = 1, Round = 2, Stacked = 3))]
@@ -55,6 +55,25 @@ struct Health {
 }
 ```
 
-## TODO: Initialization
+## Setting initial value
 
-I need to add support for `#[init(val = X)]` and custom initialization functions. I haven't done it yet cause I haven't needed it yet. Whoops. You're here too soon. Come back later.
+To set the initial (and default) value for a property on a kissing component, the `#[initial_value]` attribute can be used. The expression is passed to an `#[init(val = X)]` attribute on the component's editor object.
+
+```rust,noplayground
+# use bevy::prelude::*;
+# use bevy_kissing_godot::prelude::*;
+# 
+#[derive(Component)]
+#[kissing_component]
+struct Health {
+	#[export(enum = (Segmented = 1, Round = 2, Stacked = 3))]
+	#[initial_value = 2]
+	flags: u32,
+
+	#[export(range = (0, 1000))]
+	#[initial_value = 10]
+	maximum_hp: u32,
+
+	current_hp: u32,
+}
+```
