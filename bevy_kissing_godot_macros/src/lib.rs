@@ -7,9 +7,7 @@ use proc_macro::TokenStream;
 mod arguments;
 mod get_compilation_timestamp;
 mod kiss_bevy;
-mod kiss_node;
 mod kissing_component;
-mod kissing_component_derive;
 mod kissing_node_derive;
 mod plugin_and_kissing_component;
 mod utils;
@@ -128,21 +126,6 @@ pub fn kiss_bevy(attr: TokenStream, item: TokenStream) -> TokenStream {
 }
 
 /// This should be added to all custom Godot types added in Rust so they will appear in the hierarchy.
-/// NOTE: Is there any difference between this and `#[derive(KissingNode)]`??? Why did I add both???
-#[proc_macro]
-pub fn kiss_node(input: TokenStream) -> TokenStream {
-	kiss_node::kiss_node_impl(input)
-}
-
-/// Generates functions and metadata to allow for a Bevy component to be accessible from the Godot editor.
-/// This should be used with `#[kissing_component]`.
-#[proc_macro_derive(KissingComponent)]
-pub fn kissing_component_derive(input: TokenStream) -> TokenStream {
-	kissing_component_derive::kissing_component_derive_impl(input)
-}
-
-/// This should be added to all custom Godot types added in Rust so they will appear in the hierarchy.
-/// NOTE: Is there any difference between this and `#[kiss_node]`??? Why did I add both???
 #[proc_macro_derive(KissingNode)]
 pub fn kissing_node_derive(input: TokenStream) -> TokenStream {
 	kissing_node_derive::kissing_node_derive_impl(input)

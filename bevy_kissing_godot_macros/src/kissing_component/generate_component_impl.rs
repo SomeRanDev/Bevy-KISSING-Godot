@@ -1,6 +1,6 @@
-use proc_macro::TokenStream;
+use proc_macro2::TokenStream as TokenStream2;
 use quote::{ToTokens, quote};
-use syn::{Attribute, Expr, ItemStruct, Lit, Meta, MetaNameValue, parse_macro_input};
+use syn::{Attribute, Expr, ItemStruct, Lit, Meta, MetaNameValue};
 
 use crate::utils::NodeOrResource;
 use crate::utils::generate_godot_object_name_for_kissing_component_data;
@@ -28,9 +28,9 @@ fn get_doc_comment_from_attrs(attrs: &Vec<Attribute>) -> String {
 		.join("\n")
 }
 
-/// The implementation for `#[derive(KissingComponent)]`.
-pub(super) fn kissing_component_derive_impl(input: TokenStream) -> TokenStream {
-	let struct_input = parse_macro_input!(input as ItemStruct);
+/// Generates the component's impl providing functions and metadata to allow
+/// for a Bevy component to be accessible from the Godot editor.
+pub(super) fn generate_component_impl(struct_input: ItemStruct) -> TokenStream2 {
 	let ident = struct_input.ident;
 
 	let component_docs = get_doc_comment_from_attrs(&struct_input.attrs);
@@ -160,7 +160,7 @@ pub(super) fn kissing_component_derive_impl(input: TokenStream) -> TokenStream {
 	let data_class_name = generate_godot_object_name_for_kissing_component_data(&ident);
 
 	// Add additional static fields and add [kissing_component_data] function to inventory.
-	let result = quote! {
+	quote! {
 		impl #ident {
 			/// Returns the component's data to be used to generate the Godot editor UI.
 			fn kissing_component_data() -> bevy_kissing_godot::kissing_component::kissing_component_data::KissingComponentData {
@@ -173,7 +173,7 @@ pub(super) fn kissing_component_derive_impl(input: TokenStream) -> TokenStream {
 			}
 
 			/// Generates the component given a map of strings provided from the Godot editor UI.
-			pub fn from_editor_fields(
+			fn from_editor_fields(
 				node: &godot::prelude::Gd<godot::prelude::Node>,
 				all_nodes: &mut bevy_kissing_godot::prelude::AllNodes,
 				all_resources: &mut bevy_kissing_godot::prelude::AllResources,
@@ -209,7 +209,5 @@ pub(super) fn kissing_component_derive_impl(input: TokenStream) -> TokenStream {
 				#ident::add_component_from_editor_fields,
 			)
 		}
-	};
-
-	result.into()
+	}
 }
