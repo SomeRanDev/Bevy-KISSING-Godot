@@ -1,5 +1,7 @@
 use godot::prelude::*;
 
+use crate::kissing_registry::ToGodotDictionary;
+
 /// A structure containing the data for a "kissing" component.
 pub struct KissingComponentData {
 	pub name: &'static str,
@@ -8,8 +10,8 @@ pub struct KissingComponentData {
 	pub fields: Vec<KissingComponentFieldData>,
 }
 
-impl KissingComponentData {
-	pub fn to_dictionary(&self) -> VarDictionary {
+impl ToGodotDictionary for KissingComponentData {
+	fn to_dictionary(&self) -> VarDictionary {
 		vdict! {
 			"name": self.name.to_variant(),
 			"data_class_name": self.data_class_name.to_variant(),

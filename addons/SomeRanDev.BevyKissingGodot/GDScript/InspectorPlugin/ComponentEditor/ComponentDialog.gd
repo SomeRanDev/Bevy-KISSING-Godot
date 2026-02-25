@@ -3,12 +3,8 @@ class_name BKGAddDialog extends ConfirmationDialog
 
 # ---
 
-const PROPERTY = preload("res://addons/SomeRanDev.BevyKissingGodot/Scenes/ComponentEditor/ComponentProperty.tscn");
-
-# ---
-
-signal on_component_added(component_name: String, data: Dictionary);
-signal on_component_edited(index: int, data: Dictionary);
+signal on_entry_added(data: Dictionary);
+signal on_entry_edited(index: int, data: Dictionary);
 
 # ---
 
@@ -17,8 +13,8 @@ signal on_component_edited(index: int, data: Dictionary);
 @export var component_list: Tree;
 @export var description: RichTextLabel;
 
-@export var style_box: StyleBoxFlat;
-@export var properties_style_box: StyleBoxFlat;
+#@export var style_box: StyleBoxFlat;
+#@export var properties_style_box: StyleBoxFlat;
 
 # ---
 
@@ -26,6 +22,7 @@ var root: TreeItem;
 var components: Array;
 var last_id: float = -1.0;
 var edit_index: int = -1;
+var component_name: String = "";
 var inspector: EditorInspector;
 var inspector_object: Object;
 var modifying_node: Node;
@@ -39,21 +36,21 @@ func _ready() -> void:
 	get_ok_button().connect("pressed", close_and_emit_data);
 	component_list.connect("item_activated", close_and_emit_data);
 	component_list.connect("item_selected", on_component_selected);
-	
+
 	inspector = EditorInspector.new();
 	inspector.size_flags_vertical = Control.SIZE_EXPAND_FILL;
 	right.add_child(inspector);
 
-	properties_style_box.bg_color = get_theme_color("dark_color_2", "Editor");
+	#properties_style_box.bg_color = get_theme_color("dark_color_2", "Editor");
 
 ## Refreshes the value of [member components] if necessary.
 func load_components_if_necessary() -> bool:
-	if !ClassDB.class_exists("KissingComponentRegistry"):
+	if !ClassDB.class_exists("KissingRegistry"):
 		return false;
 
-	var id = ClassDB.class_call_static("KissingComponentRegistry", "get_compilation_id");
+	var id = ClassDB.class_call_static("KissingRegistry", "get_compilation_id");
 	if last_id != id:
-		components = ClassDB.class_call_static("KissingComponentRegistry", "find_all_kissing_components");
+		components = ClassDB.class_call_static("KissingRegistry", "find_all_kissing_components");
 
 	return true;
 
@@ -72,6 +69,7 @@ func on_open(
 ) -> void:
 	self.modifying_node = modifying_node;
 	self.edit_index = edit_index;
+	self.component_name = component_name;
 
 	if !load_components_if_necessary():
 		return; # Could not load, ignore everything...
@@ -82,7 +80,7 @@ func on_open(
 		setup_inspector(null, {});
 		for c in components:
 			if component_name == c.get("name"):
-				setup_inspector(c, old_data);
+				setup_inspector(c, old_data.get("data"));
 				break;
 		return;
 
@@ -125,20 +123,21 @@ func close_and_emit_data() -> void:
 ## creation with the new data.
 func emit_data() -> void:
 	if edit_index >= 0:
-		on_component_edited.emit(edit_index, generate_data());
+		on_entry_edited.emit(edit_index, {
+			"name": component_name,
+			"data": generate_data()
+		});
 		return;
 	
 	var selected = component_list.get_selected();
-	print(selected);
 	if selected == null:
 		return;
 
 	var text = selected.get_text(0);
-	print(text);
 	if text.is_empty():
 		return;
 
-	on_component_added.emit(text, generate_data());
+	on_entry_added.emit({ "name": text, "data": generate_data() });
 
 ## Called when an item in [member component_list] is selected.
 ## Updates the properties listed on the right side.

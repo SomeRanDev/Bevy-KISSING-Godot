@@ -1,4 +1,6 @@
-use crate::kissing_component::kissing_component_data::KissingComponentData;
+use crate::{
+	kissing_component::kissing_component_data::KissingComponentData, kissing_registry::GetData,
+};
 
 use std::{
 	collections::{BTreeMap, HashMap},
@@ -69,11 +71,14 @@ impl KissingComponent {
 		}
 	}
 
-	pub fn get_data(&self) -> KissingComponentData {
-		(self.kissing_component_data)()
-	}
-
 	pub fn get_add_component_from_editor_fields(&self) -> &AddComponentFromEditorFieldsCallback {
 		&self.add_component_from_editor_fields
+	}
+}
+
+impl GetData for KissingComponent {
+	type Data = KissingComponentData;
+	fn get_data(&self) -> KissingComponentData {
+		(self.kissing_component_data)()
 	}
 }

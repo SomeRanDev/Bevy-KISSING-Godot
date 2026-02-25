@@ -1,0 +1,50 @@
+[gd_scene format=3 uid="uid://gtmg1e70opx0"]
+
+[ext_resource type="Script" uid="uid://c1ewvraaop443" path="res://addons/SomeRanDev.BevyKissingGodot/GDScript/InspectorPlugin/EventEditor/EventPropertyEditor.gd" id="1_et1pl"]
+
+[sub_resource type="DPITexture" id="DPITexture_et1pl"]
+_source = "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"16\" height=\"16\"><path fill=\"#ff5d5d\" d=\"M2 1v8.586l1.293-1.293a1 1 0 0 1 1.414 0L7 10.587l2.293-2.293a1 1 0 0 1 1.414 0L13 10.586l1-1V6H9V1H2zm8 0v4h4zm-6 9.414-2 2V15h12v-2.586l-.293.293a1 1 0 0 1-1.414 0L10 10.414l-2.293 2.293a1 1 0 0 1-1.414 0L4 10.414z\"/></svg>
+"
+
+[node name="EventEditor" type="EditorProperty" unique_id=146024927 node_paths=PackedStringArray("bottom_editor", "add_button", "remove_button", "component_list")]
+offset_right = 384.0
+offset_bottom = 200.0
+checkable = true
+script = ExtResource("1_et1pl")
+bottom_editor = NodePath("Tree")
+add_button = NodePath("HBoxContainer/Add")
+remove_button = NodePath("HBoxContainer/Remove")
+component_list = NodePath("Tree")
+
+[node name="Tree" type="Tree" parent="." unique_id=2114878920]
+visible = false
+custom_minimum_size = Vector2(0, 100)
+layout_mode = 2
+hide_root = true
+
+[node name="HBoxContainer" type="HBoxContainer" parent="." unique_id=935340266]
+layout_mode = 2
+
+[node name="PaddingLeft" type="Control" parent="HBoxContainer" unique_id=249933084]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="Add" type="Button" parent="HBoxContainer" unique_id=1793776169]
+visible = false
+layout_mode = 2
+text = "Add"
+icon = SubResource("DPITexture_et1pl")
+
+[node name="PaddingMiddle" type="Control" parent="HBoxContainer" unique_id=1995369354]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="Remove" type="Button" parent="HBoxContainer" unique_id=1628980880]
+visible = false
+layout_mode = 2
+text = "Delete"
+icon = SubResource("DPITexture_et1pl")
+
+[node name="PaddingRight" type="Control" parent="HBoxContainer" unique_id=1493939451]
+layout_mode = 2
+size_flags_horizontal = 3

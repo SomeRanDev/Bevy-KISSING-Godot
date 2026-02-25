@@ -1,9 +1,6 @@
 [gd_scene format=3 uid="uid://cea453vkklsgc"]
 
-[ext_resource type="Script" uid="uid://bqnb1wrrso7h0" path="res://addons/SomeRanDev.BevyKissingGodot/GDScript/ComponentEditor/ComponentDialog.gd" id="1_jy2ef"]
-
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_jy2ef"]
-bg_color = Color(0, 0, 0, 1)
+[ext_resource type="Script" uid="uid://bqnb1wrrso7h0" path="res://addons/SomeRanDev.BevyKissingGodot/GDScript/InspectorPlugin/ComponentEditor/ComponentDialog.gd" id="1_jy2ef"]
 
 [sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_107ox"]
 content_margin_left = 4.0
@@ -23,8 +20,6 @@ left = NodePath("SplitContainer/Left")
 right = NodePath("SplitContainer/Right")
 component_list = NodePath("SplitContainer/Left/ComponentsList")
 description = NodePath("SplitContainer/Left/Description")
-style_box = SubResource("StyleBoxFlat_jy2ef")
-properties_style_box = SubResource("StyleBoxFlat_jy2ef")
 
 [node name="SplitContainer" type="SplitContainer" parent="." unique_id=1760671471]
 offset_left = 8.0
