@@ -1,4 +1,5 @@
-use crate::kissing_component::kissing_component_registry::KissingComponentRegistry;
+use crate::kissing_component::kissing_component_bridge;
+use crate::kissing_event::kissing_event_bridge;
 use crate::prelude::*;
 use crate::resources::entity_preregister::EntityPreregister;
 use crate::resources::gd_tracker::{AllNodes, AllResources};
@@ -153,8 +154,8 @@ impl KissingApp {
 	}
 
 	/// Connected to `SceneTree`'s `node_added` signal.
-	pub fn on_node_added(&mut self, node_added: Gd<Node>) {
-		self.setup_node(&node_added);
+	pub fn on_node_added(&mut self, mut node_added: Gd<Node>) {
+		self.setup_node(&mut node_added);
 	}
 
 	/// Connected to `SceneTree`'s `node_removed` signal.
@@ -195,17 +196,17 @@ impl KissingApp {
 	/// Set up a node's children recusively.
 	fn setup_node_children(&mut self, parent_node: &Gd<Node>) {
 		for i in 0..parent_node.get_child_count() {
-			let Some(child_node) = parent_node.get_child(i) else {
+			let Some(mut child_node) = parent_node.get_child(i) else {
 				continue;
 			};
 
-			self.setup_node(&child_node);
+			self.setup_node(&mut child_node);
 			self.setup_node_children(&child_node);
 		}
 	}
 
 	/// Set up a node for the first time.
-	fn setup_node(&mut self, node: &Gd<Node>) {
+	fn setup_node(&mut self, node: &mut Gd<Node>) {
 		let Some(world) = self.app.as_mut().map(|a| a.world_mut()) else {
 			return;
 		};
@@ -217,13 +218,13 @@ impl KissingApp {
 
 		let entity = {
 			let mut entity_preregister = world.non_send_resource_mut::<EntityPreregister>();
-			if let Some(entity) = entity_preregister.take_entity_if_exists(&node) {
+			if let Some(entity) = entity_preregister.take_entity_if_exists(node) {
 				world.entity_mut(entity)
 			} else {
 				world.spawn_empty()
 			}
 		};
-		let mut entity = add_components_for_node(entity, &node);
+		let mut entity = add_components_for_node(entity, node);
 
 		entity.insert(id);
 
@@ -233,7 +234,8 @@ impl KissingApp {
 			ready_trait.dyn_bind_mut().bevy_entity_ready(entity);
 		}
 
-		KissingComponentRegistry::apply_kissing_components(&node, world, entity_id);
+		kissing_component_bridge::apply_kissing_components(node, world, entity_id);
+		kissing_event_bridge::apply_kissing_events(node, entity_id);
 
 		self.node_id_to_bevy_entity
 			.insert(node.instance_id(), entity_id);

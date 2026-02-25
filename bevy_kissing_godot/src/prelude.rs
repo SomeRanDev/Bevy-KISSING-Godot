@@ -13,7 +13,9 @@ pub use crate::components::{
 	gd_tracker_id::GodotNodeId, gd_tracker_id::GodotResourceId, godot_node::GodotNode,
 };
 pub use crate::kissing_component::kissing_component_field::KissingComponentField;
-pub use crate::plugins::kissing_core_plugin::KissingCorePlugin;
+pub use crate::plugins::{
+	kissing_core_plugin::KissingCorePlugin, kissing_event_plugin::KissingEventPlugin,
+};
 pub use crate::resources::{
 	gd_tracker::AllNodes, gd_tracker::AllResources, physics_process_delta::PhysicsProcessDelta,
 	process_delta::ProcessDelta,
@@ -28,7 +30,7 @@ pub use crate::types::{
 // -----------------
 
 pub use bevy_kissing_godot_macros::{
-	KissingNode, kiss_bevy, kissing_component, plugin_and_kissing_component,
+	KissingEvent, KissingNode, kiss_bevy, kissing_component, plugin_and_kissing_component,
 };
 
 // -----------------------------
@@ -37,3 +39,4 @@ pub use bevy_kissing_godot_macros::{
 
 // Macro-generated code requires access to `inventory` crate.
 pub use inventory as bevy_kissing_godot_inventory;
+pub use concurrent_queue as bevy_kissing_godot_concurrent_queue;

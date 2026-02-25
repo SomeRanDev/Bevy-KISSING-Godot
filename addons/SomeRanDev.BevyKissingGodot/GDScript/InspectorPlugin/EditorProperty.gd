@@ -1,9 +1,6 @@
 @tool
-class_name BKGComponentEditor extends EditorProperty
-
-# ---
-
-const COMPONENT_DIALOG = preload("res://addons/SomeRanDev.BevyKissingGodot/Scenes/ComponentEditor/ComponentDialog.tscn");
+@abstract
+class_name BKGEditorProperty extends EditorProperty
 
 # ---
 
@@ -14,14 +11,25 @@ const COMPONENT_DIALOG = preload("res://addons/SomeRanDev.BevyKissingGodot/Scene
 
 # ---
 
-## The dialog that lists components to add.
-var dialog: BKGAddDialog;
+## The dialog that lists components/events to add.
+var dialog: ConfirmationDialog;
 
 ## The root of [field component_list] that items should be added to.
 var root: TreeItem;
 
 ## The node actively being modified by this property.
 var modifying_node: Node;
+
+# ---
+
+@abstract
+func get_dialog_scene() -> PackedScene;
+
+@abstract
+func get_meta_storage_name() -> String;
+
+@abstract
+func update_item_from_data(item: TreeItem, data: Dictionary) -> void;
 
 # ---
 
@@ -44,11 +52,12 @@ func _ready() -> void:
 	component_list.item_activated.connect(on_component_list_activated);
 
 	if modifying_node != null:
-		checked = modifying_node.has_meta("bevy_components");
+		var meta_name := get_meta_storage_name();
+		checked = modifying_node.has_meta(meta_name);
 
-		var components = modifying_node.get_meta("bevy_components", []);
+		var components = modifying_node.get_meta(meta_name, []);
 		for c in components:
-			make_item_from_data(c.get("name"), c.get("data"));
+			make_item_from_data(c);
 
 	property_checked.connect(on_checked);
 	on_checked("", checked);
@@ -63,34 +72,36 @@ func on_checked(_property: StringName, checked: bool) -> void:
 	if modifying_node == null:
 		return;
 
-	if checked && !modifying_node.has_meta("bevy_components"):
-		modifying_node.set_meta("bevy_components", []);
-	elif !checked && modifying_node.has_meta("bevy_components"):
-		modifying_node.remove_meta("bevy_components");
+	var meta_name := get_meta_storage_name();
+	if checked && !modifying_node.has_meta(meta_name):
+		modifying_node.set_meta(meta_name, []);
+	elif !checked && modifying_node.has_meta(meta_name):
+		modifying_node.remove_meta(meta_name);
 
 ## If [param dialog] does not exist, creates it.
 func ensure_dialog_exists() -> void:
 	if dialog != null:
 		return;
 
-	dialog = COMPONENT_DIALOG.instantiate();
+	dialog = get_dialog_scene().instantiate();
 	get_window().add_child(dialog);
-	dialog.on_component_added.connect(on_component_added);
-	dialog.on_component_edited.connect(on_component_edited);
+	dialog.on_entry_added.connect(on_entry_added);
+	dialog.on_entry_edited.connect(on_entry_edited);
 	dialog.hide();
 
 ## Generates a new [TreeItem] given [param name] and its corresponding
 ## component data.
-func make_item_from_data(name: String, data: Dictionary) -> void:
+func make_item_from_data(data: Dictionary) -> void:
 	var item := root.create_child();
-	item.set_text(0, name);
+	update_item_from_data(item, data);
 
 ## Returns a component's property values given its [param index] in the list of
-## components in the [member modifying_node]'s "bevy_components" metadata.
+## components in the [member modifying_node]'s "bevy_event" metadata.
 func get_data_from_index(index: int) -> Dictionary:
-	var bevy_components := modifying_node.get_meta("bevy_components", []) as Array;
-	if index >= 0 && index < bevy_components.size():
-		return bevy_components[index].get("data");
+	var meta_name := get_meta_storage_name();
+	var bevy_event := modifying_node.get_meta(meta_name, []) as Array;
+	if index >= 0 && index < bevy_event.size():
+		return bevy_event[index];
 	else:
 		return {};
 
@@ -109,10 +120,11 @@ func on_remove_clicked() -> void:
 	if item == null:
 		return;
 
-	var index = item.get_index();
-	var bevy_components := modifying_node.get_meta("bevy_components", []) as Array;
-	if index >= 0 && index < bevy_components.size():
-		bevy_components.remove_at(index);
+	var meta_name := get_meta_storage_name();
+	var index := item.get_index();
+	var bevy_event := modifying_node.get_meta(meta_name, []) as Array;
+	if index >= 0 && index < bevy_event.size():
+		bevy_event.remove_at(index);
 		root.remove_child(item);
 		item.free();
 
@@ -132,18 +144,22 @@ func on_component_list_activated() -> void:
 	);
 
 ## Connected to [member dialog]'s [signal BKGAddDialog.on_component_added].
-func on_component_added(component_name: String, data: Dictionary) -> void:
-	var bevy_components := modifying_node.get_meta("bevy_components", []) as Array;
-	bevy_components.push_back({
-		"name": component_name,
-		"data": data
-	});
-	modifying_node.set_meta("bevy_components", bevy_components);
-	
-	make_item_from_data(component_name, data);
+func on_entry_added(new_data: Dictionary) -> void:
+	var meta_name := get_meta_storage_name();
+	var bevy_event := modifying_node.get_meta(meta_name, []) as Array;
+	bevy_event.push_back(new_data);
+	modifying_node.set_meta(meta_name, bevy_event);
+
+	make_item_from_data(new_data);
 
 ## Connected to [member dialog]'s [signal BKGAddDialog.on_component_edited].
-func on_component_edited(index: int, data: Dictionary) -> void:
-	var bevy_components := modifying_node.get_meta("bevy_components", []) as Array;
-	if index >= 0 && index < bevy_components.size():
-		bevy_components[index].set("data", data);
+func on_entry_edited(index: int, new_data: Dictionary) -> void:
+	var meta_name := get_meta_storage_name();
+	var bevy_event := modifying_node.get_meta(meta_name, []) as Array;
+	if index >= 0 && index < bevy_event.size():
+		bevy_event[index] = new_data;
+		modifying_node.set_meta(meta_name, bevy_event);
+		
+		var item = root.get_child(index);
+		if item:
+			update_item_from_data(item, new_data);

@@ -1,0 +1,82 @@
+[gd_scene format=3 uid="uid://2tnunh6p0opf"]
+
+[ext_resource type="Script" uid="uid://b75hltkogbbxp" path="res://addons/SomeRanDev.BevyKissingGodot/GDScript/InspectorPlugin/EventEditor/EventDialog.gd" id="1_wo4q1"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_107ox"]
+content_margin_left = 4.0
+content_margin_top = 4.0
+content_margin_right = 4.0
+content_margin_bottom = 4.0
+
+[node name="EventDialog" type="ConfirmationDialog" unique_id=1147768592 node_paths=PackedStringArray("left", "right", "signal_list", "event_list", "description")]
+oversampling_override = 1.0
+title = "Setup Signal to Bevy Event Connection"
+position = Vector2i(0, 36)
+size = Vector2i(550, 631)
+visible = true
+dialog_hide_on_ok = false
+script = ExtResource("1_wo4q1")
+left = NodePath("SplitContainer/Left")
+right = NodePath("SplitContainer/Right")
+signal_list = NodePath("SplitContainer/Right/SignalList")
+event_list = NodePath("SplitContainer/Left/EventsList")
+description = NodePath("SplitContainer/Left/Description")
+
+[node name="SplitContainer" type="SplitContainer" parent="." unique_id=1760671471]
+offset_left = 8.0
+offset_top = 8.0
+offset_right = 542.0
+offset_bottom = 582.0
+theme_override_constants/separation = 8
+
+[node name="Right" type="VBoxContainer" parent="SplitContainer" unique_id=1504182444]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="Label" type="RichTextLabel" parent="SplitContainer/Right" unique_id=624459355]
+layout_mode = 2
+size_flags_vertical = 0
+theme_override_styles/normal = SubResource("StyleBoxEmpty_107ox")
+bbcode_enabled = true
+text = "[b]Node Signals:[/b]"
+fit_content = true
+scroll_active = false
+
+[node name="SignalList" type="Tree" parent="SplitContainer/Right" unique_id=1171070368]
+custom_minimum_size = Vector2(100, 0)
+layout_mode = 2
+size_flags_vertical = 3
+hide_root = true
+
+[node name="Left" type="VBoxContainer" parent="SplitContainer" unique_id=452754708]
+custom_minimum_size = Vector2(150, 0)
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="EventsListLabel" type="RichTextLabel" parent="SplitContainer/Left" unique_id=1325069873]
+layout_mode = 2
+theme_override_styles/normal = SubResource("StyleBoxEmpty_107ox")
+bbcode_enabled = true
+text = "[b]Bevy Events:[/b]"
+fit_content = true
+scroll_active = false
+
+[node name="EventsList" type="Tree" parent="SplitContainer/Left" unique_id=310305854]
+custom_minimum_size = Vector2(100, 0)
+layout_mode = 2
+size_flags_vertical = 3
+hide_root = true
+
+[node name="DescriptionLabel" type="RichTextLabel" parent="SplitContainer/Left" unique_id=1675244923]
+layout_mode = 2
+theme_override_styles/normal = SubResource("StyleBoxEmpty_107ox")
+bbcode_enabled = true
+text = "[b]Description:[/b]"
+fit_content = true
+scroll_active = false
+
+[node name="Description" type="RichTextLabel" parent="SplitContainer/Left" unique_id=628748373]
+layout_mode = 2
+size_flags_vertical = 3
+size_flags_stretch_ratio = 0.4
+theme_type_variation = &"EditorHelpBitContent"

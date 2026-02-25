@@ -8,6 +8,7 @@ mod arguments;
 mod get_compilation_timestamp;
 mod kiss_bevy;
 mod kissing_component;
+mod kissing_event_derive;
 mod kissing_node_derive;
 mod plugin_and_kissing_component;
 mod utils;
@@ -123,6 +124,15 @@ pub fn get_compilation_timestamp(input: TokenStream) -> TokenStream {
 #[proc_macro_attribute]
 pub fn kiss_bevy(attr: TokenStream, item: TokenStream) -> TokenStream {
 	kiss_bevy::kiss_bevy_impl(attr, item)
+}
+
+/// This derive exposes a Bevy [`bevy::prelude::Event`] to Godot and allows it to be connected
+/// to Godot signals.
+///
+/// The [`KissingEventPlugin`] must be installed to use this feature.
+#[proc_macro_derive(KissingEvent, attributes(godot_signal_arg))]
+pub fn kissing_event_derive(input: TokenStream) -> TokenStream {
+	kissing_event_derive::kissing_event_derive_impl(input)
 }
 
 /// This should be added to all custom Godot types added in Rust so they will appear in the hierarchy.

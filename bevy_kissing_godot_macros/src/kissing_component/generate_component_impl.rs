@@ -1,33 +1,12 @@
+use crate::kissing_component::KissingComponentArguments;
+use crate::utils::{
+	NodeOrResource, generate_godot_object_name_for_kissing_component_data,
+	get_doc_comment_from_attrs, is_field_export, is_node_or_resource_id,
+};
+
 use proc_macro2::TokenStream as TokenStream2;
 use quote::{ToTokens, quote};
-use syn::{Attribute, Expr, ItemStruct, Lit, Meta, MetaNameValue};
-
-use crate::kissing_component::KissingComponentArguments;
-use crate::utils::NodeOrResource;
-use crate::utils::generate_godot_object_name_for_kissing_component_data;
-use crate::utils::is_field_export;
-use crate::utils::is_node_or_resource_id;
-
-/// Returns a `String` that's a combination of all `doc` attributes in the list.
-fn get_doc_comment_from_attrs(attrs: &Vec<Attribute>) -> String {
-	attrs
-		.iter()
-		.filter_map(|attr| {
-			// Only keep attributes that are `doc = "..."`
-			if let Meta::NameValue(MetaNameValue { path, value, .. }) = &attr.meta {
-				if path.is_ident("doc") {
-					if let Expr::Lit(lit) = &value {
-						if let Lit::Str(s) = &lit.lit {
-							return Some(s.value());
-						}
-					}
-				}
-			}
-			None
-		})
-		.collect::<Vec<String>>()
-		.join("\n")
-}
+use syn::ItemStruct;
 
 /// Generates the component's impl providing functions and metadata to allow
 /// for a Bevy component to be accessible from the Godot editor.
