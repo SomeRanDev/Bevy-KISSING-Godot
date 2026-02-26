@@ -74,11 +74,11 @@ pub(super) fn generate_component_impl(
 						node
 							.get_node_or_null(&node_path)
 							.map(|node_path_node|
-								#tracker.get_or_register_id_from_node(&node_path_node)
+								#tracker.get_id_from_instance_id(&node_path_node)
 							)
 					}),
 					NodeOrResource::Resource => Some(quote! {
-						Some(#tracker.get_or_register_id_from_node(&node_path))
+						Some(#tracker.get_id_from_instance_id(&node_path))
 					}),
 				};
 				quote! {
@@ -114,7 +114,7 @@ pub(super) fn generate_component_impl(
 								.try_to::<#godot_type>()
 								.ok()
 								#convert
-								.map(|node_path_node| #tracker.get_or_register_id_from_node(&node_path_node))
+								.map(|node_path_node| #tracker.get_id_from_instance_id(&node_path_node))
 						})
 				}
 			}
