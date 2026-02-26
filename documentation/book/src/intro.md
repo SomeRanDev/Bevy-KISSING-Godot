@@ -21,11 +21,11 @@ Because I like using components in gamedev. And I like Rust. Idk it fun.
 
 One *may* assume the name exists to reduce confusion with Godot-Bevy and distinguish this from inevitable future Bevy + Godot projects, but **actually** I don't care about those things at all and it's because I ship two male personifications of Bevy and Godot in a toxic yaoi relationship where they kiss passionately.
 
-## Bevy components in the Godot editor???
+## Add Bevy components in the Godot editor?
 
 Using a Godot addon, the Godot's Nodes' inspectors now have a component list you can add your Bevy components to. Simply add the `#[kissing_component]` attribute to a Bevy component to make it available!
 
-You can use `#[export]` to allow properties to be modified in the editor.
+You can use `#[export]` to allow properties to be modified in the editor (with the **exact** same options from [gdext](https://godot-rust.github.io/docs/gdext/master/godot/register/derive.GodotClass.html#export-properties--export)!).
 
 Check out the [Components](./components.html) section for more details.
 
@@ -37,17 +37,46 @@ Check out the [Components](./components.html) section for more details.
 #[derive(Component)]
 #[kissing_component]
 struct Grid {
-	#[export(initial_value = Vector2i::new(10, 10))]
-	count: Vector2i,
+	#[export]
+	#[initial_value = Vector2i::new(10, 10)]
+	size: Vector2i,
 
-	#[export(initial_value = 2.)]
+	#[export(range = (0., 10.))]
+	#[initial_value = 2.]
 	spacing: real,
 
-	#[export]
-	offset: Vector2i,
+	#[export(enum = (Orthographic, Isometric))]
+	kind: i32,
 }
 ```
 
+## Connect Godot signals to Bevy events in the Godot editor?
+
+Using the same Godot addon, Godot nodes can ALSO have their signals connected to Bevy events. Just derive from `KissingEvent` and the event will become available in the Godot editor!
+
+Check out the [Events](./events.html) section for more details.
+
+```rust,noplayground
+# use godot::prelude::*;
+# use bevy::prelude::*;
+# use bevy_kissing_godot::prelude::*;
+# 
+/// A unit Event can connect to any signal.
+#[derive(Event, KissingEvent)]
+struct OnAnyGodotSignal;
+
+/// Event intended to connect to Button.toggled
+#[derive(EntityEvent, KissingEvent)]
+struct OnMyButtonPressed {
+	// Receive entity for Button node.
+	#[event_target]
+	entity: Entity,
+
+	// Receive first argument of signal; it must be a bool.
+	#[godot_signal_arg(0)]
+	toggled_on: bool,
+}
+```
 
 ## Multithreading?
 

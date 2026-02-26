@@ -6,6 +6,7 @@
 - [Schedules](./schedules.md)
 - [How it Works](./how_it_works.md)
 - [Components](./components.md)
+- [Events](./events.md)
 - [Queries](./queries.md)
 - [Make Your Nodes Queryable](./queryable_custom_nodes.md)
 - [On Bevy Entity Ready](./bevy_entity_ready.md)
