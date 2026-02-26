@@ -106,4 +106,6 @@ pub(crate) fn get_doc_comment_from_attrs(attrs: &Vec<syn::Attribute>) -> String 
 		})
 		.collect::<Vec<String>>()
 		.join("\n")
+		.trim()
+		.to_string()
 }
