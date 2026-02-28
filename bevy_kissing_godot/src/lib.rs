@@ -1,5 +1,6 @@
 pub mod bevy_entity_ready;
 pub mod components;
+pub mod extensions;
 pub mod kissing_app;
 pub mod kissing_component;
 pub mod kissing_event;
