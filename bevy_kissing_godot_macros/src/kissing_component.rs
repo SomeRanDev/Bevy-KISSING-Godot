@@ -20,6 +20,7 @@ mod generate_godot_object_struct;
 /// A representation of the arguments passed to `#[kissing_component]`.
 struct KissingComponentArguments {
 	on_construct: Option<proc_macro2::TokenStream>,
+	on_added_to_node: Option<proc_macro2::TokenStream>,
 }
 
 impl KissingComponentArguments {
@@ -32,10 +33,15 @@ impl KissingComponentArguments {
 			Err(err) => return Err(err),
 		};
 
-		let mut result = Self { on_construct: None };
+		let mut result = Self {
+			on_construct: None,
+			on_added_to_node: None,
+		};
 		for arg in args {
 			if arg.path.is_ident("on_construct") {
 				result.on_construct = Some(arg.value.into_token_stream());
+			} else if arg.path.is_ident("on_added_to_node") {
+				result.on_added_to_node = Some(arg.value.into_token_stream());
 			} else {
 				return Err(syn::Error::new(
 					arg.span(),

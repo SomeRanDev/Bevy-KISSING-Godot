@@ -44,7 +44,7 @@ pub static COMPONENT_NAME_TO_FUNC: LazyLock<
 
 /// A reference to a component's static function [add_component_from_editor_fields].
 type AddComponentFromEditorFieldsCallback = fn(
-	node: &Gd<Node>,
+	node: &mut Gd<Node>,
 	world: &mut World,
 	entity: &Entity,
 	fields: BTreeMap<String, Variant>,
