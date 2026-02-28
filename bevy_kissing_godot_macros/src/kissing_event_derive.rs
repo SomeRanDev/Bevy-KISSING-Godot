@@ -17,7 +17,7 @@ struct KissingEventExpressions {
 
 struct KissingEventField {
 	kind: FieldKind,
-	ident: Option<Ident>,
+	ident: Ident,
 	ty: Type,
 }
 
@@ -27,7 +27,7 @@ struct KissingEventField {
 
 enum FieldKind {
 	EventTarget,
-	GodotSignalArg(u32),
+	GodotSignalArg(usize),
 }
 
 // -------------
@@ -97,25 +97,39 @@ pub(super) fn kissing_event_derive_impl(input: TokenStream) -> TokenStream {
 	.into()
 }
 
+fn generate_identifier_from_number(number: i32) -> Ident {
+	Ident::new(&format!("_{}", number), proc_macro2::Span::call_site())
+}
+
 fn parse_fields(fields: Fields) -> syn::Result<KissingEventExpressions> {
 	let mut kissing_fields = vec![];
 	match &fields {
 		Fields::Named(fields_named) => {
+			let mut index = 0;
 			for field in &fields_named.named {
 				kissing_fields.push(KissingEventField {
 					kind: parse_field(&field)?,
-					ident: field.ident.clone(),
+					ident: field
+						.ident
+						.clone()
+						.unwrap_or_else(|| generate_identifier_from_number(index)),
 					ty: field.ty.clone(),
 				});
+				index += 1;
 			}
 		}
 		Fields::Unnamed(fields_unnamed) => {
+			let mut index = 0;
 			for field in &fields_unnamed.unnamed {
 				kissing_fields.push(KissingEventField {
 					kind: parse_field(&field)?,
-					ident: field.ident.clone(),
+					ident: field
+						.ident
+						.clone()
+						.unwrap_or_else(|| generate_identifier_from_number(index)),
 					ty: field.ty.clone(),
 				});
+				index += 1;
 			}
 		}
 		Fields::Unit => (),
@@ -196,7 +210,7 @@ fn parse_field(field: &Field) -> syn::Result<FieldKind> {
 			return Ok(FieldKind::EventTarget);
 		} else if attr.path().is_ident("godot_signal_arg") {
 			let index: LitInt = attr.parse_args()?;
-			let index = index.base10_parse::<u32>()?;
+			let index = index.base10_parse::<usize>()?;
 			return Ok(FieldKind::GodotSignalArg(index));
 		}
 	}
