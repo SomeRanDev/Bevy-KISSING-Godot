@@ -14,8 +14,8 @@ inventory::collect!(KissingEvent);
 // * Top-Level Static Vars *
 // -------------------------
 
-/// A `HashMap` that, given a name of a `KissingComponent`-derived `Component`,
-/// returns its `add_component_from_editor_fields`.
+/// A `HashMap` that, given a name of a `KissingEvent`-derived `Event`/`EntityEvent`,
+/// returns its `untyped_slot_callback`.
 pub static EVENT_NAME_TO_SLOT_FUNC: LazyLock<HashMap<StringName, &UntypedSlotCallback>> =
 	LazyLock::new(|| {
 		let mut event_name_to_func = HashMap::<StringName, &UntypedSlotCallback>::new();

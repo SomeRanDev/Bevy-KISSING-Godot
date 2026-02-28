@@ -143,8 +143,15 @@ pub(super) fn generate_component_impl(
 	let data_class_name = generate_godot_object_name_for_kissing_component_data(&ident);
 
 	// Get tokens for what happens after the construction of the component `c`.
-	let post_construction = if let Some(on_construct) = args.on_construct {
+	let on_construct = if let Some(on_construct) = args.on_construct {
 		quote! { #on_construct(&mut c); }
+	} else {
+		quote! {}
+	};
+
+	// Get tokens for what happens upon adding the component `c` to a node.
+	let on_added_to_node = if let Some(on_added_to_node) = args.on_added_to_node {
+		quote! { #on_added_to_node(node, &mut c, entity, world); }
 	} else {
 		quote! {}
 	};
@@ -176,7 +183,7 @@ pub(super) fn generate_component_impl(
 
 			/// Adds the component to [entity] given its fields as a map from the Godot editor UI.
 			pub fn add_component_from_editor_fields(
-				node: &godot::prelude::Gd<godot::prelude::Node>,
+				node: &mut godot::prelude::Gd<godot::prelude::Node>,
 				world: &mut bevy::prelude::World,
 				entity: &bevy::prelude::Entity,
 				fields: std::collections::BTreeMap<String, godot::prelude::Variant>,
@@ -187,7 +194,8 @@ pub(super) fn generate_component_impl(
 				)> = bevy::ecs::system::SystemState::new(world);
 				let (all_nodes, all_resources) = system_state.get_mut(world);
 				let mut c = Self::from_editor_fields(node, &mut all_nodes.into_inner(), &mut all_resources.into_inner(), fields);
-				#post_construction
+				#on_construct
+				#on_added_to_node
 				let Ok(mut e) = world.get_entity_mut(*entity) else { return false };
 				e.insert(c);
 				true

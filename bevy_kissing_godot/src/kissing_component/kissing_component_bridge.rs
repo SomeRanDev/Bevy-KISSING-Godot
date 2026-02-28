@@ -35,7 +35,7 @@ impl Display for ConvertComponentDataVariantToRustError {
 // -------------
 
 /// Applies the "kissing" components defined in the Godot editor on a node.
-pub fn apply_kissing_components<'a>(node: &Gd<Node>, world: &mut World, entity: Entity) {
+pub fn apply_kissing_components<'a>(node: &mut Gd<Node>, world: &mut World, entity: Entity) {
 	if !node.has_meta("bevy_components") {
 		return;
 	}
