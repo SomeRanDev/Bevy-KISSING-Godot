@@ -5,7 +5,7 @@ use crate::utils::{
 };
 
 use proc_macro2::TokenStream as TokenStream2;
-use quote::{ToTokens, quote};
+use quote::{ToTokens, format_ident, quote};
 use syn::ItemStruct;
 
 /// Generates the component's impl providing functions and metadata to allow
@@ -56,13 +56,15 @@ pub(super) fn generate_component_impl(
 		};
 		let ty = &f.ty;
 		if let Some(data) = is_node_or_resource_id(ty) {
-			let (godot_type, id_type, tracker) = match data.kind {
+			let (identifier, godot_type, id_type, tracker) = match data.kind {
 				NodeOrResource::Node => (
+					format_ident!("node_path"),
 					quote! { godot::prelude::NodePath },
 					quote! { bevy_kissing_godot::prelude::GodotNodeId },
 					quote! { all_nodes },
 				),
 				NodeOrResource::Resource => (
+					format_ident!("resource"),
 					quote! { godot::prelude::Gd<godot::prelude::Resource> },
 					quote! { bevy_kissing_godot::prelude::GodotResourceId },
 					quote! { all_resources },
@@ -72,28 +74,30 @@ pub(super) fn generate_component_impl(
 				let convert = match data.kind {
 					NodeOrResource::Node => Some(quote! {
 						node
-							.get_node_or_null(&node_path)
+							.get_node_or_null(&#identifier)
 							.map(|node_path_node|
-								#tracker.get_id_from_instance_id(&node_path_node)
+								#tracker.get_or_register_id_from_gd_object(&node_path_node)
 							)
 					}),
 					NodeOrResource::Resource => Some(quote! {
-						Some(#tracker.get_id_from_instance_id(&node_path))
+						Some(#tracker.get_or_register_id_from_gd_object(&#identifier))
 					}),
 				};
+				let identifier_plural = format_ident!("{}s", identifier);
+				let identifier_maybe = format_ident!("maybe_{}", identifier);
 				quote! {
 					#ident: fields
 						.get(stringify!(#ident))
-						.and_then(|node_path| {
-							node_path
+						.and_then(|#identifier| {
+							#identifier
 								.try_to::<godot::prelude::Array<#godot_type>>()
 								.ok()
-								.map(|node_paths|
-									node_paths
+								.map(|#identifier_plural|
+									#identifier_plural
 										.iter_shared()
-										.map(|node_path| #convert)
-										.filter(|maybe_node_path| maybe_node_path.is_some())
-										.map(|node_path| node_path.unwrap())
+										.map(|#identifier| #convert)
+										.filter(|#identifier_maybe| #identifier_maybe.is_some())
+										.map(|#identifier| #identifier.unwrap())
 										.collect::<Vec<#id_type>>()
 								)
 						})
@@ -101,20 +105,20 @@ pub(super) fn generate_component_impl(
 				}
 			} else {
 				let convert = match data.kind {
-					NodeOrResource::Node => {
-						Some(quote! { .and_then(|node_path| node.get_node_or_null(&node_path)) })
-					}
+					NodeOrResource::Node => Some(
+						quote! { .and_then(|#identifier| node.get_node_or_null(&#identifier)) },
+					),
 					NodeOrResource::Resource => None,
 				};
 				quote! {
 					#ident: fields
 						.get(stringify!(#ident))
-						.and_then(|node_path| {
-							node_path
+						.and_then(|#identifier| {
+							#identifier
 								.try_to::<#godot_type>()
 								.ok()
 								#convert
-								.map(|node_path_node| #tracker.get_id_from_instance_id(&node_path_node))
+								.map(|#identifier| #tracker.get_or_register_id_from_gd_object(&#identifier))
 						})
 				}
 			}
