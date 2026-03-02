@@ -20,13 +20,12 @@ This is a completely valid and usable component in Bevy💋Godot! Add it to any 
 
 In Bevy💋Godot, a "kissing" component is a component that is exposed and visible in the Godot editor (it crosses the boundary and kisses Godot).
 
-To make a "kissing" component, just add the `kissing_component` attribute.
+To make a "kissing" component, just add the `KissingComponent` derive.
 ```rust,noplayground
 # use bevy::prelude::*;
 # use bevy_kissing_godot::prelude::*;
 # 
-#[derive(Component)]
-#[kissing_component]
+#[derive(Component, KissingComponent)]
 struct Health {
 	flags: u32,
 	current_hp: u32,
@@ -44,8 +43,7 @@ To allow the fields of your kissing component to be editable in Godot, you use t
 # use bevy::prelude::*;
 # use bevy_kissing_godot::prelude::*;
 # 
-#[derive(Component)]
-#[kissing_component]
+#[derive(Component, KissingComponent)]
 struct Health {
 	#[export(enum = (Segmented = 1, Round = 2, Stacked = 3))] // added
 	flags: u32,
@@ -65,8 +63,7 @@ To set the initial (and default) value for a property on a kissing component, th
 # use bevy::prelude::*;
 # use bevy_kissing_godot::prelude::*;
 # 
-#[derive(Component)]
-#[kissing_component]
+#[derive(Component, KissingComponent)]
 struct Health {
 	#[export(enum = (Segmented = 1, Round = 2, Stacked = 3))]
 	#[initial_value = 2] // added
@@ -88,7 +85,7 @@ The kissing component is constructed directly from the values provided by the ed
 # use bevy::prelude::*;
 # use bevy_kissing_godot::prelude::*;
 # 
-#[derive(Component)]
+#[derive(Component, KissingComponent)]
 #[kissing_component(on_construct = health_on_construct)] // added
 struct Health {
 	#[export(enum = (Segmented = 1, Round = 2, Stacked = 3))]
