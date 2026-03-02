@@ -85,8 +85,8 @@ func generate_project(
 		"MACRO_CRATE_NAME": macro_crate_name,
 		"MACRO_CRATE_FOLDER_NAME": macro_crate_folder_name,
 		"GENERATE_CONFIG_TOML": generate_config_toml,
-		"GODOT_EDITOR_PATH": godot_editor_path,
-		"LIBCLANG_PATH": clang_path,
+		"GODOT_EDITOR_PATH": godot_editor_path.replace("\\", "/"),
+		"LIBCLANG_PATH": clang_path.replace("\\", "/"),
 		"TARGET_DIR": BKGUtils.get_relative_path(
 			rust_project_location.path_join("target"),
 			project_global_path
