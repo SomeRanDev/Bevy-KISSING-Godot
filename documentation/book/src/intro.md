@@ -72,7 +72,7 @@ struct OnMyButtonPressed {
 	entity: Entity,
 
 	// Receive first argument of signal; it must be a bool.
-	#[godot_signal_arg(0)]
+	#[godot_signal_arg(index = 0)]
 	toggled_on: bool,
 }
 ```
