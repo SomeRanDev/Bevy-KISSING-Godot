@@ -119,7 +119,7 @@ struct TreeItemButtonClicked {
 
 A `GdHandle` can be converted to a `Gd<T>` using a `NonSend<GdHandleUnlocker>`.
 
-```rust
+```rust,noplayground
 # use bevy::prelude::*;
 # use bevy_kissing_godot::prelude::*;
 # use godot::classes::TreeItem;
@@ -160,7 +160,7 @@ fn get_tree_item_index(v: &Variant) -> i32 {
 
 All fields on the `KissingEvent` struct must be annotated with `#[event_target]`, `#[godot_signal_arg]`, OR `#[godot_signal_value]`. `#[godot_signal_value]` is helpful if you want to have a constant value to fill a field when the event is triggered from the Godot editor.
 
-```rust
+```rust,noplayground
 # use bevy::prelude::*;
 # use bevy_kissing_godot::prelude::*;
 # use godot::classes::Control;
@@ -185,7 +185,7 @@ fn my_system(mut commands: Commands) {
 All `KissingEvent`-derived structs generate a `typed_slot` function you can use to connect to Godot signals manually. Its arguments will be the fields of the struct (plus entity if an `EntityEvent`). However, please note you DO need to have access to the node's Bevy entity upon connecting.
 
 So if you had a `Gd<OptionButton>` (and its `Entity`), you could manually connect it to the `ItemSelected` event above by doing:
-```rust
+```rust,noplayground
 let option_button: Gd<OptionButton> = /* ... */;
 let option_button_entity: Entity = /* ... */;
 
