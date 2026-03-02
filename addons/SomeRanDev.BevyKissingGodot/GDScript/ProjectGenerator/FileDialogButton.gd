@@ -35,5 +35,5 @@ func ensure_file_dialog() -> void:
 func on_path_selected(path: String) -> void:
 	line_edit.text = "";
 	if relative_to_project:
-		path = BKGUtils.get_relative_path(path, ProjectSettings.globalize_path("res://"));
+		path = BKGUtils.get_relative_path(path, ProjectSettings.globalize_path("res://")).replace("\\", "/");
 	line_edit.text = path;
