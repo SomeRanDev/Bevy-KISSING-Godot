@@ -130,7 +130,7 @@ pub fn kiss_bevy(attr: TokenStream, item: TokenStream) -> TokenStream {
 /// to Godot signals.
 ///
 /// The [`KissingEventPlugin`] must be installed to use this feature.
-#[proc_macro_derive(KissingEvent, attributes(godot_signal_arg))]
+#[proc_macro_derive(KissingEvent, attributes(godot_signal_arg, godot_signal_value))]
 pub fn kissing_event_derive(input: TokenStream) -> TokenStream {
 	kissing_event_derive::kissing_event_derive_impl(input)
 }

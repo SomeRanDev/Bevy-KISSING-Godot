@@ -2,6 +2,7 @@ use crate::kissing_component::kissing_component_bridge;
 use crate::kissing_event::kissing_event_bridge;
 use crate::prelude::*;
 use crate::resources::entity_preregister::EntityPreregister;
+use crate::resources::gd_handle::GdHandleUnlocker;
 use crate::resources::gd_tracker::{AllNodes, AllResources};
 
 use std::collections::BTreeMap;
@@ -90,6 +91,7 @@ impl KissingApp {
 		app.add_plugins(crate::prelude::KissingCorePlugin);
 		app.insert_non_send_resource(AllNodes::default());
 		app.insert_non_send_resource(AllResources::default());
+		app.insert_non_send_resource(GdHandleUnlocker::new());
 		app.insert_non_send_resource(EntityPreregister::default());
 		self.app = app.into();
 	}
