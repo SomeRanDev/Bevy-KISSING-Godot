@@ -18,7 +18,10 @@ pub use crate::plugins::{
 	kissing_core_plugin::KissingCorePlugin, kissing_event_plugin::KissingEventPlugin,
 };
 pub use crate::resources::{
-	gd_tracker::AllNodes, gd_tracker::AllResources, physics_process_delta::PhysicsProcessDelta,
+	gd_handle::{GdHandle, GdHandleUnlocker},
+	gd_tracker::AllNodes,
+	gd_tracker::AllResources,
+	physics_process_delta::PhysicsProcessDelta,
 	process_delta::ProcessDelta,
 };
 pub use crate::scedules::{PhysicsProcess, Process};

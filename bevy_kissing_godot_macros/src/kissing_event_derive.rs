@@ -2,7 +2,9 @@ use crate::utils::get_doc_comment_from_attrs;
 use convert_case::{Case, Casing};
 use proc_macro::TokenStream;
 use quote::{format_ident, quote};
-use syn::{Field, Fields, Ident, ItemStruct, LitInt, Type, parse_macro_input, spanned::Spanned};
+use syn::{
+	Field, Fields, Ident, ItemStruct, LitInt, Path, Type, parse_macro_input, spanned::Spanned,
+};
 
 // -----------
 // * Structs *
@@ -27,7 +29,115 @@ struct KissingEventField {
 
 enum FieldKind {
 	EventTarget,
-	GodotSignalArg(usize),
+	GodotSignalArg(GodotSignalArgData),
+	DirectValue(proc_macro2::TokenStream),
+}
+
+// ----------------------
+// * GodotSignalArgData *
+// ----------------------
+
+struct GodotSignalArgData {
+	index: LitInt,
+	gd_handle: bool,
+	from_variant: Option<Path>,
+}
+
+impl GodotSignalArgData {
+	fn generate_variant_converstion_expr(
+		&self,
+		variant_array_expr: proc_macro2::TokenStream,
+	) -> proc_macro2::TokenStream {
+		let index = &self.index;
+		let variant_expr = quote!(#variant_array_expr[#index]);
+		if self.gd_handle {
+			quote!(bevy_kissing_godot::resources::gd_handle::GdHandle::from_variant(#variant_expr))
+		} else if let Some(from_variant) = &self.from_variant {
+			quote!(#from_variant(#variant_expr))
+		} else {
+			quote!(#variant_expr.to())
+		}
+	}
+}
+
+impl syn::parse::Parse for GodotSignalArgData {
+	fn parse(input: syn::parse::ParseStream) -> syn::Result<Self> {
+		use syn::{Error, Expr, ExprLit, Lit, Meta, Token, punctuated::Punctuated};
+
+		fn invalid_argument<T: quote::ToTokens>(tokens: T) -> Error {
+			Error::new_spanned(
+				tokens,
+				"argument must be `index = <INT>`, `gd_handle`, or `from_variant = <FUNCTION_PATH>`",
+			)
+		}
+
+		let args = Punctuated::<Meta, Token![,]>::parse_terminated(input)?;
+
+		let mut index: Option<LitInt> = None;
+		let mut gd_handle: bool = false;
+		let mut from_variant: Option<Path> = None;
+
+		for meta in args {
+			match meta {
+				Meta::Path(path) => {
+					if path.is_ident("gd_handle") {
+						gd_handle = true;
+					} else {
+						return Err(invalid_argument(path));
+					}
+				}
+				Meta::NameValue(meta) => {
+					let ident = meta
+						.path
+						.get_ident()
+						.ok_or_else(|| invalid_argument(&meta.path))?
+						.to_string();
+
+					match ident.as_str() {
+						"index" => match meta.value {
+							Expr::Lit(ExprLit {
+								lit: Lit::Int(lit), ..
+							}) => {
+								index = Some(lit);
+							}
+							other => {
+								return Err(invalid_argument(other));
+							}
+						},
+						"from_variant" => {
+							if let Expr::Path(expr_path) = meta.value {
+								from_variant = Some(expr_path.path);
+							} else {
+								return Err(invalid_argument(meta.value));
+							}
+						}
+						_ => {
+							return Err(invalid_argument(meta.path));
+						}
+					}
+				}
+				_ => {
+					return Err(invalid_argument(meta));
+				}
+			}
+		}
+
+		if gd_handle && from_variant.is_some() {
+			return Err(Error::new(
+				input.span(),
+				"cannot provide both `gd_handle` and `from_variant`",
+			));
+		}
+
+		let index = index
+			.ok_or_else(|| Error::new(input.span(), "missing required argument `index = <INT>`"))?;
+
+		Ok(Self {
+			index,
+			gd_handle,
+			from_variant,
+		})
+	}
 }
 
 // -------------
@@ -93,8 +203,7 @@ pub(super) fn kissing_event_derive_impl(input: TokenStream) -> TokenStream {
 				#ident::untyped_slot,
 			)
 		}
-	}
-	.into()
+	}.into()
 }
 
 fn generate_identifier_from_number(number: i32) -> Ident {
@@ -147,9 +256,13 @@ fn parse_fields(fields: Fields) -> syn::Result<KissingEventExpressions> {
 					.iter()
 					.map(|f| {
 						let ident = f.ident.clone();
-						match f.kind {
+						match &f.kind {
 							FieldKind::EventTarget => quote!(#ident: entity),
-							FieldKind::GodotSignalArg(index) => quote!(#ident: args[#index].to()),
+							FieldKind::GodotSignalArg(data) => {
+								let expr = data.generate_variant_converstion_expr(quote!(args));
+								quote!(#ident: #expr)
+							}
+							FieldKind::DirectValue(expression) => quote!(#ident: #expression),
 						}
 					})
 					.collect::<Vec<proc_macro2::TokenStream>>();
@@ -158,9 +271,12 @@ fn parse_fields(fields: Fields) -> syn::Result<KissingEventExpressions> {
 			Fields::Unnamed(_) => {
 				let args = kissing_fields
 					.iter()
-					.map(|f| match f.kind {
+					.map(|f| match &f.kind {
 						FieldKind::EventTarget => quote!(entity),
-						FieldKind::GodotSignalArg(index) => quote!(args[#index].to()),
+						FieldKind::GodotSignalArg(data) => {
+							data.generate_variant_converstion_expr(quote!(args))
+						}
+						FieldKind::DirectValue(expression) => expression.clone(),
 					})
 					.collect::<Vec<proc_macro2::TokenStream>>();
 				quote!(Self(#(#args),*))
@@ -175,9 +291,10 @@ fn parse_fields(fields: Fields) -> syn::Result<KissingEventExpressions> {
 				.iter()
 				.map(|f| {
 					let ident = f.ident.clone();
-					match f.kind {
+					match &f.kind {
 						FieldKind::EventTarget => quote!(entity),
 						FieldKind::GodotSignalArg(_) => quote!(#ident),
+						FieldKind::DirectValue(expression) => quote!(#ident: #expression),
 					}
 				})
 				.collect::<Vec<proc_macro2::TokenStream>>();
@@ -195,27 +312,39 @@ fn parse_fields(fields: Fields) -> syn::Result<KissingEventExpressions> {
 					let ident = f.ident.clone();
 					let ty = f.ty.clone();
 					match f.kind {
-						FieldKind::EventTarget => quote!(entity: bevy::prelude::Entity),
-						FieldKind::GodotSignalArg(_) => quote!(#ident: #ty),
+						FieldKind::EventTarget => Some(quote!(entity: bevy::prelude::Entity)),
+						FieldKind::GodotSignalArg(_) => Some(quote!(#ident: #ty)),
+						FieldKind::DirectValue(_) => None,
 					}
 				})
+				.filter_map(|v| v)
 				.collect::<Vec<proc_macro2::TokenStream>>()
 		},
 	})
 }
 
 fn parse_field(field: &Field) -> syn::Result<FieldKind> {
+	use syn::{Error, Meta};
+
 	for attr in &field.attrs {
 		if attr.path().is_ident("event_target") {
 			return Ok(FieldKind::EventTarget);
 		} else if attr.path().is_ident("godot_signal_arg") {
-			let index: LitInt = attr.parse_args()?;
-			let index = index.base10_parse::<usize>()?;
-			return Ok(FieldKind::GodotSignalArg(index));
+			let data: GodotSignalArgData = attr.parse_args()?;
+			return Ok(FieldKind::GodotSignalArg(data));
+		} else if attr.path().is_ident("godot_signal_value") {
+			return match &attr.meta {
+				Meta::List(meta_list) => Ok(FieldKind::DirectValue(meta_list.tokens.clone())),
+				_ => Err(Error::new_spanned(
+					attr,
+					"expected name-value syntax `#[godot_signal_value(<EXPRESSION>)]`",
+				)),
+			};
 		}
 	}
-	Err(syn::Error::new(
+
+	Err(Error::new(
 		field.span(),
-		"#[event_target] or #[godot_signal_arg(index: u32)] required for all KissingEvent fields",
+		"`#[event_target]`, `#[godot_signal_arg(index = <INT>)]`, or `#[godot_signal_value(<EXPRESSION>)]` required for all KissingEvent fields",
 	))
 }
