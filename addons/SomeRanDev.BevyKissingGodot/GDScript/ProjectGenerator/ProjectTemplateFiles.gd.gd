@@ -74,7 +74,8 @@ pub(crate) use godot::prelude::*;"),
 	ProjectFile
 		.new("{GAME_CRATE_FOLDER_NAME}/src/lib.rs")
 		.content("mod app;
-mod extension_library;"),
+mod extension_library;
+mod prelude;"),
 
 	ProjectFile
 		.new("{GAME_CRATE_FOLDER_NAME}/src/app.rs")
