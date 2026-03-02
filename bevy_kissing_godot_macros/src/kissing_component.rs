@@ -10,7 +10,6 @@ use syn::{
 // -----------
 
 mod generate_component_impl;
-mod generate_component_struct;
 mod generate_godot_object_struct;
 
 // -----------
@@ -18,14 +17,15 @@ mod generate_godot_object_struct;
 // -----------
 
 /// A representation of the arguments passed to `#[kissing_component]`.
+#[derive(Default)]
 struct KissingComponentArguments {
 	on_construct: Option<proc_macro2::TokenStream>,
 	on_added_to_node: Option<proc_macro2::TokenStream>,
 }
 
 impl KissingComponentArguments {
-	fn from_attr_token_stream(attr: TokenStream) -> syn::Result<Self> {
-		let args: Punctuated<MetaNameValue, Comma> = match Parser::parse(
+	fn from_attr_token_stream(attr: proc_macro2::TokenStream) -> syn::Result<Self> {
+		let args: Punctuated<MetaNameValue, Comma> = match Parser::parse2(
 			Punctuated::<MetaNameValue, syn::Token![,]>::parse_terminated,
 			attr,
 		) {
@@ -58,28 +58,44 @@ impl KissingComponentArguments {
 // * Functions *
 // -------------
 
-/// The implementation for `#[kissing_component]`.
-pub(super) fn kissing_component_impl(attr: TokenStream, item: TokenStream) -> TokenStream {
-	let struct_input = parse_macro_input!(item as ItemStruct);
+/// The implementation for `#[derive(KissingComponent)]`.
+pub(super) fn kissing_component_derive_impl(input: TokenStream) -> TokenStream {
+	let struct_input = parse_macro_input!(input as ItemStruct);
 
-	let component_struct =
-		generate_component_struct::generate_component_struct(struct_input.clone());
+	// Find `#[kissing_component]` if it exists
+	let mut arguments_attribute = None;
+	for attr in &struct_input.attrs {
+		if attr.path().is_ident("kissing_component") {
+			arguments_attribute = Some(attr);
+			break;
+		}
+	}
 
-	let args = match KissingComponentArguments::from_attr_token_stream(attr) {
-		Ok(args) => args,
-		Err(err) => return err.into_compile_error().into(),
+	// Parse arguments from `#[kissing_component]`
+	let args = if let Some(arguments_attribute) = arguments_attribute {
+		match KissingComponentArguments::from_attr_token_stream(
+			arguments_attribute.into_token_stream(),
+		) {
+			Ok(args) => args,
+			Err(err) => return err.into_compile_error().into(),
+		}
+	} else {
+		KissingComponentArguments::default()
 	};
+
+	// Generate `impl` for struct this derive is on
 	let component_struct_impl =
 		generate_component_impl::generate_component_impl(struct_input.clone(), args);
 
+	// Generate Godot object struct for this component
 	let object_struct =
 		match generate_godot_object_struct::generate_godot_object_struct(struct_input) {
 			Ok(object_struct) => object_struct,
 			Err(err) => return err.into_compile_error().into(),
 		};
 
+	// Final output
 	let result = quote! {
-		#component_struct
 		#component_struct_impl
 		#object_struct
 	};

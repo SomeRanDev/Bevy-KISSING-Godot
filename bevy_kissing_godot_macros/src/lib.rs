@@ -19,27 +19,26 @@ mod utils;
 
 /// Used to expose a Bevy component to the Godot editor.
 ///
-/// This should be used alongside `#[derive(bevy::prelude::Component, bevy_kissing_godot::prelude::KissingComponent)]`.
+/// This should be used alongside [`bevy::prelude::Component`].
 /// ```rust
 /// #[derive(Component, KissingComponent)]
-/// #[kissing_component]
 /// struct Health {
 /// 	maximum: i32,
 /// }
 /// ```
 ///
 /// To enable a field to be modified in the Godot editor, the `#[export]` attribute can be used.
-/// Optionally, a default-value can be provided with `initial_value = VALUE`.
+/// Optionally, a default-value can be provided with `#[initial_value = <EXPRESSION>]`.
 /// ```rust
 /// #[derive(Component, KissingComponent)]
-/// #[kissing_component]
 /// struct Health {
-/// 	#[export(initial_value = 100)]
+/// 	#[export]
+/// 	#[initial_value = 100]
 /// 	maximum: i32,
 /// }
 /// ```
 ///
-/// `#[export_node]` can be used to allow for a `NodePath` input.
+/// `#[export_node]` can be used to allow for a [`godot::prelude::NodePath`] input.
 ///
 /// To allow only certain classes to be selected in the editor, Godot classes may be listed
 /// as the arguments to the attribute:
@@ -47,11 +46,10 @@ mod utils;
 /// #[export_node(Camera3D, CollisionShape3D, Path3D)]
 /// ```
 ///
-/// A field with `#[export_node]` MUST be an `Option<bevy_kissing_godot::prelude::GodotNodeId>`.
-/// `GodotNodeId` can be converted an actual `Gd<T>` node through `NonSend<AllNodes>` at runtime.
+/// A field with `#[export_node]` MUST be an [`Option<bevy_kissing_godot::prelude::GodotNodeId>`].
+/// [`GodotNodeId`] can be converted an actual `Gd<T>` node through `NonSend<AllNodes>` at runtime.
 /// ```rust
 /// #[derive(Component, KissingComponent)]
-/// #[kissing_component]
 /// struct Health {
 /// 	#[export(initial_value = 100)]
 /// 	maximum: i32,
@@ -69,9 +67,12 @@ mod utils;
 /// 	}
 /// }
 /// ```
-#[proc_macro_attribute]
-pub fn kissing_component(attr: TokenStream, item: TokenStream) -> TokenStream {
-	kissing_component::kissing_component_impl(attr, item)
+#[proc_macro_derive(
+	KissingComponent,
+	attributes(kissing_component, export_resource, export_node, export, initial_value)
+)]
+pub fn kissing_component_derive(input: TokenStream) -> TokenStream {
+	kissing_component::kissing_component_derive_impl(input)
 }
 
 /// A utility used to track whether the Rust binary has been recompiled in Godot.
