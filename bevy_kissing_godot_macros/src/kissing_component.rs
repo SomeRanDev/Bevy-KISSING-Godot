@@ -1,9 +1,6 @@
 use proc_macro::TokenStream;
-use quote::{ToTokens, quote};
-use syn::{
-	ItemStruct, MetaNameValue, parse::Parser, parse_macro_input, punctuated::Punctuated,
-	spanned::Spanned, token::Comma,
-};
+use quote::quote;
+use syn::{Attribute, ItemStruct, TypePath, parse_macro_input};
 
 // -----------
 // * Modules *
@@ -19,36 +16,27 @@ mod generate_godot_object_struct;
 /// A representation of the arguments passed to `#[kissing_component]`.
 #[derive(Default)]
 struct KissingComponentArguments {
-	on_construct: Option<proc_macro2::TokenStream>,
-	on_added_to_node: Option<proc_macro2::TokenStream>,
+	on_construct: Option<TypePath>,
+	on_added_to_node: Option<TypePath>,
 }
 
 impl KissingComponentArguments {
-	fn from_attr_token_stream(attr: proc_macro2::TokenStream) -> syn::Result<Self> {
-		let args: Punctuated<MetaNameValue, Comma> = match Parser::parse2(
-			Punctuated::<MetaNameValue, syn::Token![,]>::parse_terminated,
-			attr,
-		) {
-			Ok(data) => data,
-			Err(err) => return Err(err),
-		};
-
+	fn from_attr_token_stream(attr: &Attribute) -> syn::Result<Self> {
 		let mut result = Self {
 			on_construct: None,
 			on_added_to_node: None,
 		};
-		for arg in args {
-			if arg.path.is_ident("on_construct") {
-				result.on_construct = Some(arg.value.into_token_stream());
-			} else if arg.path.is_ident("on_added_to_node") {
-				result.on_added_to_node = Some(arg.value.into_token_stream());
+
+		attr.parse_nested_meta(|meta| {
+			if meta.path.is_ident("on_construct") {
+				result.on_construct = Some(meta.value()?.parse::<TypePath>()?);
+			} else if meta.path.is_ident("on_added_to_node") {
+				result.on_added_to_node = Some(meta.value()?.parse::<TypePath>()?);
 			} else {
-				return Err(syn::Error::new(
-					arg.span(),
-					"unknown argument for #[kissing_component]",
-				));
+				return Err(meta.error("unknown argument for #[kissing_component]"));
 			}
-		}
+			Ok(())
+		})?;
 
 		Ok(result)
 	}
@@ -73,9 +61,7 @@ pub(super) fn kissing_component_derive_impl(input: TokenStream) -> TokenStream {
 
 	// Parse arguments from `#[kissing_component]`
 	let args = if let Some(arguments_attribute) = arguments_attribute {
-		match KissingComponentArguments::from_attr_token_stream(
-			arguments_attribute.into_token_stream(),
-		) {
+		match KissingComponentArguments::from_attr_token_stream(arguments_attribute) {
 			Ok(args) => args,
 			Err(err) => return err.into_compile_error().into(),
 		}
