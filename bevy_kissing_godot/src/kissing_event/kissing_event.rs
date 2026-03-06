@@ -31,7 +31,7 @@ pub static EVENT_NAME_TO_SLOT_FUNC: LazyLock<HashMap<StringName, &UntypedSlotCal
 // * Type Aliases *
 // ----------------
 
-type UntypedSlotCallback = fn(entity: Entity, args: &[&Variant]) -> ();
+pub(crate) type UntypedSlotCallback = fn(entity: Entity, args: &[&Variant]) -> ();
 
 // -----------
 // * Structs *

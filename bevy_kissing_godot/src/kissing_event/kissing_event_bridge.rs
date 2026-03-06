@@ -1,9 +1,9 @@
+use crate::kissing_event::kissing_event::{EVENT_NAME_TO_SLOT_FUNC, UntypedSlotCallback};
+
 use std::fmt::Display;
 
 use bevy::prelude::*;
 use godot::prelude::*;
-
-use crate::kissing_event::kissing_event::EVENT_NAME_TO_SLOT_FUNC;
 
 // ---------
 // * Enums *
@@ -54,13 +54,23 @@ pub fn apply_kissing_events<'a>(node: &mut Gd<Node>, entity: Entity) {
 		let Some(callback) = EVENT_NAME_TO_SLOT_FUNC.get(&event) else {
 			continue;
 		};
-		let entity_clone = entity.clone();
-		node.connect(
-			&signal,
-			&Callable::from_sync_fn("", move |args| {
-				callback(entity_clone, args);
-			}),
-		);
+		node.connect(&signal, &generate_callable(entity.clone(), callback));
+	}
+}
+
+fn generate_callable(entity: Entity, callback: &'static UntypedSlotCallback) -> Callable {
+	#[cfg(feature = "multi_threaded")]
+	{
+		return Callable::from_sync_fn("", move |args| {
+			callback(entity, args);
+		});
+	}
+
+	#[cfg(not(feature = "multi_threaded"))]
+	{
+		return Callable::from_fn("", move |args| {
+			callback(entity, args);
+		});
 	}
 }
 
