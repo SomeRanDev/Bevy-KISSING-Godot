@@ -9,6 +9,10 @@ keywords.workspace = true
 categories.workspace = true
 license.workspace = true
 
+[features]
+default = []
+multi_threaded = ["godot/experimental-threads", "bevy/multi_threaded"]
+
 [dependencies]
 godot.workspace = true
 bevy.workspace = true
