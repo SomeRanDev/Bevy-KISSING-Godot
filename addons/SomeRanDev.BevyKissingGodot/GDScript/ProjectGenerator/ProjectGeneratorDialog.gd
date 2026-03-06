@@ -138,7 +138,6 @@ func update_error_and_is_error_free() -> bool:
 		game_crate_name.text.is_empty() ||
 		game_crate_folder_name.text.is_empty() ||
 		autoload_location.text.is_empty() ||
-		autoload_gdscript_name.text.is_empty() ||
 		autoload_rust_name.text.is_empty() ||
 		(
 			automatically_generate_gdextension.button_pressed &&

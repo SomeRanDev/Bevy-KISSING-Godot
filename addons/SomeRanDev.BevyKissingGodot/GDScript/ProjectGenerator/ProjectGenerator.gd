@@ -122,7 +122,11 @@ func generate_project(
 
 		print("");
 		print_rich("[color=light_green]NOTE! Adding [b]" + ProjectSettings.localize_path(autoload_location) + "[/b] as an autoload for the project, but this will result in a couple [b]errors[/b] below. These errors will persist until the Rust code is compiled![/color]");
-		plugin.add_autoload_singleton(autoload_gdscript_name, autoload_location);
+
+		var autoload_name = autoload_gdscript_name;
+		if autoload_name.is_empty(): autoload_name = autoload_rust_name + "GD";
+		plugin.add_autoload_singleton(autoload_name, autoload_location);
+
 		print_rich("[color=light_green]Okay, expected errors should end here.[/color]");
 
 func save_to_file(path: String, content: String, print_generated_path_relative_to: String = "") -> bool:
