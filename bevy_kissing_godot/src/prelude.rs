@@ -19,10 +19,10 @@ pub use crate::plugins::{
 };
 pub use crate::resources::{
 	gd_handle::GdHandle, gd_tracker::AllNodes, gd_tracker::AllResources,
-	godot_thread_ensurer::GodotThreadEnsurer, physics_process_delta::PhysicsProcessDelta,
-	process_delta::ProcessDelta,
+	godot_thread_ensurer::GodotThreadEnsurer, input_event_argument::InputEventArgument,
+	physics_process_delta::PhysicsProcessDelta, process_delta::ProcessDelta,
 };
-pub use crate::scedules::{PhysicsProcess, Process};
+pub use crate::scedules::{GodotInput, PhysicsProcess, Process};
 pub use crate::types::{
 	GodotNodeQueryUtils, QueryGodotNode, QueryGodotNodeWith, SingleGodotNode, SingleGodotNodeWith,
 };

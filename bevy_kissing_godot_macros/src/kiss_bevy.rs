@@ -23,6 +23,16 @@ pub(crate) fn kiss_bevy_impl(attr: TokenStream, item: TokenStream) -> TokenStrea
 		.map(|m| quote!(#m!(#physics_process_call, self)))
 		.unwrap_or(physics_process_call);
 
+	let input_event_function = if cfg!(feature = "input") {
+		Some(quote! {
+			fn input(&mut self, event: godot::obj::Gd<godot::classes::InputEvent>) {
+				self.app.input(event);
+			}
+		})
+	} else {
+		None
+	};
+
 	let result = quote! {
 		#[derive(godot::prelude::GodotClass)]
 		#[class(init, base = Node)]
@@ -55,6 +65,8 @@ pub(crate) fn kiss_bevy_impl(attr: TokenStream, item: TokenStream) -> TokenStrea
 			fn physics_process(&mut self, delta: f64) {
 				#physics_process_call;
 			}
+
+			#input_event_function
 		}
 
 		#input_fn

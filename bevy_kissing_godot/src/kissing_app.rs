@@ -4,11 +4,13 @@ use crate::prelude::*;
 use crate::resources::entity_preregister::EntityPreregister;
 use crate::resources::gd_tracker::{AllNodes, AllResources};
 use crate::resources::godot_thread_ensurer::GodotThreadEnsurer;
+use crate::resources::input_event_argument::InputEventArgument;
 
 use std::collections::BTreeMap;
 use std::mem;
 
 use bevy::prelude::*;
+use godot::classes::InputEvent;
 use godot::prelude::*;
 
 // -------------------------
@@ -93,6 +95,10 @@ impl KissingApp {
 		app.insert_non_send_resource(AllResources::default());
 		app.insert_non_send_resource(GodotThreadEnsurer::new());
 		app.insert_non_send_resource(EntityPreregister::default());
+
+		#[cfg(feature = "input")]
+		app.insert_non_send_resource(InputEventArgument(None));
+
 		self.app = app.into();
 	}
 
@@ -138,6 +144,19 @@ impl KissingApp {
 		app.world_mut().resource_mut::<PhysicsProcessDelta>().0 = delta;
 		app.world_mut().run_schedule(PhysicsProcess);
 		self.handle_tree_responder_events();
+	}
+
+	/// Called every `_input` of the user's Bevy app node.
+	#[cfg(feature = "input")]
+	pub fn input(&mut self, event: Gd<InputEvent>) {
+		let Some(app) = self.app.as_mut() else { return };
+		if let Some(mut arg) = app
+			.world_mut()
+			.get_non_send_resource_mut::<InputEventArgument>()
+		{
+			arg.0 = Some(event);
+		}
+		app.world_mut().run_schedule(GodotInput);
 	}
 
 	/// Handle any changes that occured from `TreeResponder` receiving `SceneTree` events.
