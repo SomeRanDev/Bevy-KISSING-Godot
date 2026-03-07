@@ -11,6 +11,7 @@ license.workspace = true
 
 [features]
 default = []
+input = ["bevy_kissing_godot_macros/input"]
 multi_threaded = ["godot/experimental-threads", "bevy/multi_threaded"]
 
 [dependencies]
