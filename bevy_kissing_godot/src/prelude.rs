@@ -22,10 +22,17 @@ pub use crate::resources::{
 	godot_thread_ensurer::GodotThreadEnsurer, input_event_argument::InputEventArgument,
 	physics_process_delta::PhysicsProcessDelta, process_delta::ProcessDelta,
 };
-pub use crate::scedules::{GodotInput, PhysicsProcess, Process};
+pub use crate::scedules::{PhysicsProcess, Process};
 pub use crate::types::{
 	GodotNodeQueryUtils, QueryGodotNode, QueryGodotNodeWith, SingleGodotNode, SingleGodotNodeWith,
 };
+
+// -----------------------
+// * Conditional Exports *
+// -----------------------
+
+#[cfg(feature = "input")]
+pub use crate::scedules::GodotInput;
 
 // -----------------
 // * Macro Exports *
