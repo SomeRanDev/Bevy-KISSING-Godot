@@ -5,10 +5,12 @@
 Let's start with a normal Bevy component.
 ```rust,noplayground
 # use bevy::prelude::*;
+# use godot::prelude::*;
 # 
 #[derive(Component)]
 struct Health {
 	flags: u32,
+	position: Vector2,
 	current_hp: u32,
 	maximum_hp: u32,
 }
@@ -23,11 +25,13 @@ In Bevy💋Godot, a "kissing" component is a component that is exposed and visib
 To make a "kissing" component, just add the `KissingComponent` derive.
 ```rust,noplayground
 # use bevy::prelude::*;
+# use godot::prelude::*;
 # use bevy_kissing_godot::prelude::*;
 # 
 #[derive(Component, KissingComponent)]
 struct Health {
 	flags: u32,
+	position: Vector2,
 	current_hp: u32,
 	maximum_hp: u32,
 }
@@ -41,12 +45,16 @@ To allow the fields of your kissing component to be editable in Godot, you use t
 
 ```rust,noplayground
 # use bevy::prelude::*;
+# use godot::prelude::*;
 # use bevy_kissing_godot::prelude::*;
 # 
 #[derive(Component, KissingComponent)]
 struct Health {
 	#[export(enum = (Segmented = 1, Round = 2, Stacked = 3))] // added
 	flags: u32,
+
+	#[export] // added
+	position: Vector2,
 
 	#[export(range = (0, 1000))] // added
 	maximum_hp: u32,
@@ -59,8 +67,11 @@ struct Health {
 
 To set the initial (and default) value for a property on a kissing component, the `#[initial_value]` attribute can be used. The expression is passed to an `#[init(val = X)]` attribute on the component's editor object.
 
+For literals, the `#[initial_value = VALUE]` syntax can be used. Rust does not allow all expressions for that attribute syntax, so for more complicated expressions, `#[initial_value(VALUE)]` must be used.
+
 ```rust,noplayground
 # use bevy::prelude::*;
+# use godot::prelude::*;
 # use bevy_kissing_godot::prelude::*;
 # 
 #[derive(Component, KissingComponent)]
@@ -68,6 +79,10 @@ struct Health {
 	#[export(enum = (Segmented = 1, Round = 2, Stacked = 3))]
 	#[initial_value = 2] // added
 	flags: u32,
+
+	#[export]
+	#[initial_value(Vector2::new(100., 100.))] // added
+	position: Vector2,
 
 	#[export(range = (0, 1000))]
 	#[initial_value = 10] // added
@@ -83,6 +98,7 @@ The kissing component is constructed directly from the values provided by the ed
 
 ```rust,noplayground
 # use bevy::prelude::*;
+# use godot::prelude::*;
 # use bevy_kissing_godot::prelude::*;
 # 
 #[derive(Component, KissingComponent)]
@@ -91,6 +107,10 @@ struct Health {
 	#[export(enum = (Segmented = 1, Round = 2, Stacked = 3))]
 	#[initial_value = 2]
 	flags: u32,
+
+	#[export]
+	#[initial_value(Vector2::new(100., 100.))]
+	position: Vector2,
 
 	#[export(range = (0, 1000))]
 	#[initial_value = 10]
