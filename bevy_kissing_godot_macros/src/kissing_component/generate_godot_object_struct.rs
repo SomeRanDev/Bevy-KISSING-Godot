@@ -211,18 +211,18 @@ fn take_export_attribute_if_exists(
 		return None;
 	};
 
-	// Extract TOKEN_STREAM from `#[initial_value = TOKEN_STREAM]`
+	// Extract TOKEN_STREAM from `#[initial_value = TOKEN_STREAM]` or `#[initial_value(TOKEN_STREAM)]`.
 	let mut initial_value_token_stream = None;
 	if let Some(initial_value_attr) = initial_value_attr {
 		match initial_value_attr.meta {
+			Meta::Path(_) => {
+				initial_value_token_stream = Some(quote!(Default::default()));
+			}
+			Meta::List(meta_list) => {
+				initial_value_token_stream = Some(meta_list.tokens);
+			}
 			Meta::NameValue(meta_name_value) => {
 				initial_value_token_stream = Some(meta_name_value.value.into_token_stream());
-			}
-			_ => {
-				return Some(Err(syn::Error::new(
-					initial_value_attr.span(),
-					"attribute requires assignment #[initial_value = SOMETHING]",
-				)));
 			}
 		}
 	}

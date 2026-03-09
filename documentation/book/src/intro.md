@@ -37,7 +37,7 @@ Check out the [Components](./components.html) section for more details.
 #[derive(Component, KissingComponent)]
 struct Grid {
 	#[export]
-	#[initial_value = Vector2i::new(10, 10)]
+	#[initial_value(Vector2i::new(10, 10))]
 	size: Vector2i,
 
 	#[export(range = (0., 10.))]
