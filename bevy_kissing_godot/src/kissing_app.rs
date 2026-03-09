@@ -4,14 +4,22 @@ use crate::prelude::*;
 use crate::resources::entity_preregister::EntityPreregister;
 use crate::resources::gd_tracker::{AllNodes, AllResources};
 use crate::resources::godot_thread_ensurer::GodotThreadEnsurer;
-use crate::resources::input_event_argument::InputEventArgument;
 
 use std::collections::BTreeMap;
 use std::mem;
 
 use bevy::prelude::*;
-use godot::classes::InputEvent;
 use godot::prelude::*;
+
+// -----------------------
+// * Conditional Imports *
+// -----------------------
+
+#[cfg(feature = "input")]
+use crate::resources::input_event_argument::InputEventArgument;
+
+#[cfg(feature = "input")]
+use godot::classes::InputEvent;
 
 // -------------------------
 // * Top-Level Macro Calls *
