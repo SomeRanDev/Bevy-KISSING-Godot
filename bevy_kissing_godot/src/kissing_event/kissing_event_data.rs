@@ -12,9 +12,9 @@ pub struct KissingEventData {
 impl ToGodotDictionary for KissingEventData {
 	fn to_dictionary(&self) -> VarDictionary {
 		vdict! {
-			"name": self.name,
-			"argument_count": self.argument_count as u32,
-			"docs": self.docs,
+			"name" => self.name,
+			"argument_count" => self.argument_count as u32,
+			"docs" => self.docs,
 		}
 	}
 }
