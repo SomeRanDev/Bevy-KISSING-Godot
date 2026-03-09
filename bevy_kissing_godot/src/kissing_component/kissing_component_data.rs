@@ -13,10 +13,10 @@ pub struct KissingComponentData {
 impl ToGodotDictionary for KissingComponentData {
 	fn to_dictionary(&self) -> VarDictionary {
 		vdict! {
-			"name": self.name.to_variant(),
-			"data_class_name": self.data_class_name.to_variant(),
-			"docs": self.docs.to_variant(),
-			"fields": self.fields
+			"name" => self.name,
+			"data_class_name" => self.data_class_name,
+			"docs" => self.docs,
+			"fields" => &self.fields
 				.iter()
 				.map(|s| s.to_dictionary())
 				.collect::<Array<VarDictionary>>(),
@@ -34,9 +34,9 @@ pub struct KissingComponentFieldData {
 impl KissingComponentFieldData {
 	pub fn to_dictionary(&self) -> VarDictionary {
 		vdict! {
-			"name": self.name,
-			"type_string": self.type_string,
-			"description": self.description.unwrap_or_default(),
+			"name" => self.name,
+			"type_string" => self.type_string,
+			"description" => self.description.unwrap_or_default(),
 		}
 	}
 }
