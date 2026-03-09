@@ -117,7 +117,7 @@ struct TreeItemButtonClicked {
 }
 ```
 
-A `GdHandle` can be converted to a `Gd<T>` using a `NonSend<GdHandleUnlocker>`.
+A `GdHandle` can be converted to a `Gd<T>` using a `NonSend<GodotThreadEnsurer>`.
 
 ```rust,noplayground
 # use bevy::prelude::*;
@@ -126,9 +126,9 @@ A `GdHandle` can be converted to a `Gd<T>` using a `NonSend<GdHandleUnlocker>`.
 # 
 fn on_tree_item_button_clicked(
 	event: On<TreeItemButtonClicked>,
-	unlocker: NonSend<GdHandleUnlocker>
+	ensurer: NonSend<GodotThreadEnsurer>
 ) {
-	let item: Gd<TreeItem> = event.tree_item.to_gd(&unlocker);
+	let item: Gd<TreeItem> = event.tree_item.to_gd(&ensurer);
 	// do something with `item`...
 }
 ```
