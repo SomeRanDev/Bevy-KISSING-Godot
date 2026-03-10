@@ -11,7 +11,7 @@ Every Bevy entity that correlates to a Godot node will have a `GodotNodeId` comp
 # use bevy::prelude::*;
 # use bevy_kissing_godot::prelude::*;
 # 
-# #[kiss_bevy(PoopPeeKisser)]
+# #[kiss_bevy(node_name = PoopPeeKisser)]
 # fn main(app: &mut App) {
 # 	app.add_scedule(Process, update_health);
 # }
@@ -48,7 +48,7 @@ Note this filter will include all child classes. So a `Node3D` filter will inclu
 # use bevy::prelude::*;
 # use bevy_kissing_godot::prelude::*;
 # 
-# #[kiss_bevy(PoopPeeKisser)]
+# #[kiss_bevy(node_name = PoopPeeKisser)]
 # fn main(app: &mut App) {
 # 	app.add_scedule(Process, update_float);
 # }

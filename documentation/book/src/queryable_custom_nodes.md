@@ -21,7 +21,7 @@ This will now work:
 # use bevy::prelude::*;
 # use bevy_kissing_godot::prelude::*;
 # 
-# #[kiss_bevy(PoopPeeKisser)]
+# #[kiss_bevy(node_name = PoopPeeKisser)]
 # fn main(app: &mut App) {
 # 	app.add_scedule(Process, update_float);
 # }

@@ -6,7 +6,7 @@
 # use bevy::prelude::*;
 # use bevy_kissing_godot::prelude::*;
 # 
-#[kiss_bevy(PoopPeeKisser)]
+#[kiss_bevy(node_name = PoopPeeKisser)]
 fn main(app: &mut App) {
 	// do stuff with app
 }
@@ -14,20 +14,20 @@ fn main(app: &mut App) {
 
 ## Declaration and Arguments
 
-In addition to the autoload `Node` name argument, it has two more optional arguments. The declaration could be seen as something like this:
+In addition to the autoload `Node` name argument, it has two more optional arguments. The declaration could be seen as something like this (assume `Option` arguments are optional):
 ```rust,noplayground
 kiss_bevy(
-	bevy_app_name: Ident,
-	process_wrapper_macro_path: Option<Path> = None,
-	physics_process_wrapper_macro_path: Option<Path> = None
+	node_name = Ident,
+	process_wrapper = Option<Path>,
+	physics_process_wrapper = Option<Path>,
 )
 ```
 
-`process_wrapper_macro_path` and `physics_process_wrapper_macro_path` should be paths to macros that take two expression arguments:
+`process_wrapper` and `physics_process_wrapper` can be assigned paths to macros that take two expression arguments:
  * The first is the original expression that would be generated if the macro wasn't passed.
  * The second is the `self` expression for the autoload `Node`.
 
-`process_wrapper_macro_path` wraps the `process` expression of the generated Bevy app node. `physics_process_wrapper_macro_path` does the same, but for the `physics_process`.
+`process_wrapper` wraps the `process` expression of the generated Bevy app node. `physics_process_wrapper` does the same, but for the `physics_process`.
 
 ## Example
 
@@ -51,7 +51,11 @@ macro_rules panic_catcher {
 	}
 }
 
-#[kiss_bevy(MyAppNodeName, panic_catcher, panic_catcher)]
+#[kiss_bevy(
+	node_name = MyAppNodeName,
+	process_wrapper = panic_catcher,
+	physics_process_wrapper = panic_catcher
+)]
 fn main(app: &mut App) {
 	// Do stuff with `app`...
 }

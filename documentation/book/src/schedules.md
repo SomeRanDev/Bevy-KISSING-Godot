@@ -11,7 +11,7 @@ Bevy💋Godot DOES support `Startup`. It runs immediately after the scene tree i
 # use bevy::prelude::*;
 # use bevy_kissing_godot::prelude::*;
 # 
-#[kiss_bevy(PoopPeeKisser)]
+#[kiss_bevy(node_name = PoopPeeKisser)]
 fn main(app: &mut App) {
 	app.add_scedule(Startup, on_game_start)
 }
@@ -36,7 +36,7 @@ You can use the `ProcessDelta` resource to access the delta value for that proce
 # use bevy::prelude::*;
 # use bevy_kissing_godot::prelude::*;
 # 
-#[kiss_bevy(PoopPeeKisser)]
+#[kiss_bevy(node_name = PoopPeeKisser)]
 fn main(app: &mut App) {
 	app.add_scedule(Process, on_game_update)
 }
@@ -57,7 +57,7 @@ Similarly, you can use the `PhysicsProcessDelta` resource to access its delta.
 # use bevy::prelude::*;
 # use bevy_kissing_godot::prelude::*;
 # 
-#[kiss_bevy(PoopPeeKisser)]
+#[kiss_bevy(node_name = PoopPeeKisser)]
 fn main(app: &mut App) {
 	app.add_scedule(PhysicsProcess, on_game_update_physics)
 }
