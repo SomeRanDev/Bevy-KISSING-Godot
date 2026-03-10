@@ -9,7 +9,7 @@ pub(crate) fn kiss_bevy_impl(attr: TokenStream, item: TokenStream) -> TokenStrea
 	let input_fn = parse_macro_input!(item as ItemFn);
 	let input_fn_name = input_fn.sig.ident.clone();
 
-	let node_identifier = input_arg.app_identifier;
+	let node_identifier = input_arg.node_name;
 
 	let process_call = quote!(self.app.process(delta));
 	let process_call = input_arg

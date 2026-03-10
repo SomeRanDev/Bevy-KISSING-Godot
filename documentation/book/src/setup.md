@@ -43,7 +43,7 @@ Create a function that takes a mutable reference to Bevy's `App`. This will be t
 # use bevy::prelude::*;
 # use bevy_kissing_godot::prelude::*;
 # 
-#[kiss_bevy(PoopPeeKisser)]
+#[kiss_bevy(node_name = PoopPeeKisser)]
 fn main(app: &mut App) {
 	// do stuff with app
 }
@@ -54,13 +54,17 @@ Once you successfully compile your Rust stuff, you need to add your autoload `No
 
 First create a GDScript file that extends from your Rust node:
 ```gdscript
-class_name PoopPeeKisserGDScript extends PoopPeeKisser
+extends PoopPeeKisser
 ```
 
 Then you'll need to:
- * Go to `Project > Project Settings > Globals > Autoload`
- * Set the GDScript file path to "Path"
- * Press `+ Add` button
+ 1) Go to `Project > Project Settings > Globals > Autoload`
+
+ 2) Set the GDScript file path to "Path"
+
+ 3) Give it a name (like `PoopPeeKisserGD`)
+ 
+ 4) Press the `+ Add` button
 
 ### 6. You're Now Ready to Go!
 

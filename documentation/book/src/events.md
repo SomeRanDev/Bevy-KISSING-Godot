@@ -15,7 +15,7 @@ struct FocusEntered;
 
 // ---
 
-#[kiss_bevy]
+#[kiss_bevy(node_name = MyGameKisser)]
 fn setup(app: &mut App) {
 	app.add_observer(on_focus);
 }
@@ -48,7 +48,7 @@ struct MinimumSizeChanged {
 You can get the node from the `entity` using a query. Visit [Queries](./queries.html) for more details.
 
 ```rust,noplayground
-#[kiss_bevy]
+#[kiss_bevy(node_name = MyGameKisser)]
 fn setup(app: &mut App) {
 	app.add_observer(on_minimum_size_changed);
 }
@@ -85,7 +85,7 @@ struct ItemSelected {
 
 // ---
 
-#[kiss_bevy]
+#[kiss_bevy(node_name = MyGameKisser)]
 fn setup(app: &mut App) {
 	app.add_observer(on_item_selected);
 }

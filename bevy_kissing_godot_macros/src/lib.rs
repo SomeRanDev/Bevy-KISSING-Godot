@@ -87,21 +87,21 @@ pub fn get_compilation_timestamp(input: TokenStream) -> TokenStream {
 /// This attribute requires one argument for the name of the Bevy app node that needs
 /// to be added as an autoload in the editor:
 /// ```rust
-/// #[kiss_bevy(MyAppNodeName)]
+/// #[kiss_bevy(node_name = MyAppNodeName)]
 /// fn main(app: &mut bevy::prelude::App) {
 ///		// Do stuff with `app`...
 /// }
 /// ```
 ///
-/// The second and third arguments are optional. If provided, they are both expected to
-/// be paths to macros that take two expression arguments. The "second" is a macro that
-/// wraps the "process" expression of the generated Bevy app node. The "third" is the
-/// same, but it's for the "physics_process" expression.
+/// Two additional arguments can be provided. They allow you to modify the contents of the
+/// app node's `process` and `physics_process` functions with a macro. The path to the
+/// desired macros can be assigned to `process_wrapper` or `physics_process_wrapper` arguments.
 ///
 /// These macros should take two arguments:
 /// 	* The first is the original expression
 /// 	* The second is the `self` expression
 ///
+/// For example:
 /// ```rust
 /// macro_rules panic_catcher {
 /// 	($process: expr, $self: expr) => {
@@ -117,7 +117,7 @@ pub fn get_compilation_timestamp(input: TokenStream) -> TokenStream {
 /// 	}
 /// }
 ///
-/// #[kiss_bevy(MyAppNodeName, panic_catcher, panic_catcher)]
+/// #[kiss_bevy(node_name = MyAppNodeName, process_wrapper = panic_catcher, physics_process_wrapper = panic_catcher)]
 /// fn main(app: &mut bevy::prelude::App) {
 ///		// Do stuff with `app`...
 /// }
