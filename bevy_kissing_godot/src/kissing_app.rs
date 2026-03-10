@@ -2,8 +2,7 @@ use crate::kissing_component::kissing_component_bridge;
 use crate::kissing_event::kissing_event_bridge;
 use crate::prelude::*;
 use crate::resources::entity_preregister::EntityPreregister;
-use crate::resources::gd_tracker::{AllNodes, AllResources};
-use crate::resources::godot_thread_ensurer::GodotThreadEnsurer;
+use crate::resources::gd_tracker::AllNodes;
 
 use std::collections::BTreeMap;
 use std::mem;
@@ -99,13 +98,9 @@ impl KissingApp {
 	pub fn pre_ready(&mut self) {
 		let mut app = bevy::prelude::App::new();
 		app.add_plugins(crate::prelude::KissingCorePlugin);
-		app.insert_non_send_resource(AllNodes::default());
-		app.insert_non_send_resource(AllResources::default());
-		app.insert_non_send_resource(GodotThreadEnsurer::new());
-		app.insert_non_send_resource(EntityPreregister::default());
 
 		#[cfg(feature = "input")]
-		app.insert_non_send_resource(InputEventArgument(None));
+		app.add_plugins(crate::plugins::kissing_input_plugin::KissingInputPlugin);
 
 		self.app = app.into();
 	}
