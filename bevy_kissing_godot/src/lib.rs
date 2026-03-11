@@ -6,6 +6,7 @@ pub mod kissing_component;
 pub mod kissing_event;
 pub mod kissing_node;
 pub mod kissing_registry;
+pub mod nodes;
 pub mod plugins;
 pub mod prelude;
 pub mod resources;

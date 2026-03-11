@@ -1,7 +1,6 @@
 use crate::utils::get_doc_comment_from_attrs;
-use convert_case::{Case, Casing};
 use proc_macro::TokenStream;
-use quote::{format_ident, quote};
+use quote::quote;
 use syn::{
 	Field, Fields, Ident, ItemStruct, LitInt, Path, Type, parse_macro_input, spanned::Spanned,
 };
@@ -12,6 +11,7 @@ use syn::{
 
 struct KissingEventExpressions {
 	argument_count: usize,
+	requires_entity: bool,
 	untyped_constructor_expr: proc_macro2::TokenStream,
 	typed_constructor_expr: proc_macro2::TokenStream,
 	typed_slot_args: Vec<proc_macro2::TokenStream>,
@@ -153,54 +153,53 @@ pub(super) fn kissing_event_derive_impl(input: TokenStream) -> TokenStream {
 	};
 
 	let docs = get_doc_comment_from_attrs(&item_struct.attrs);
-
 	let ident = item_struct.ident;
-	let name = format_ident!("{}_QUEUE", ident.to_string().to_case(Case::UpperSnake));
 
-	let argument_count = kissing_event_expressions.argument_count;
-	let untyped_constructor_expr = kissing_event_expressions.untyped_constructor_expr;
-	let typed_constructor_expr = kissing_event_expressions.typed_constructor_expr;
-	let typed_slot_args = kissing_event_expressions.typed_slot_args;
+	let KissingEventExpressions {
+		argument_count,
+		requires_entity,
+		untyped_constructor_expr,
+		typed_constructor_expr,
+		typed_slot_args,
+	} = kissing_event_expressions;
+
+	let untyped_slot_entity_argument = if requires_entity {
+		Some(quote!(entity: bevy::prelude::Entity,))
+	} else {
+		None
+	};
 
 	quote! {
-		static #name: std::sync::LazyLock<
-			bevy_kissing_godot::prelude::bevy_kissing_godot_concurrent_queue::ConcurrentQueue<#ident>,
-		> = std::sync::LazyLock::new(|| bevy_kissing_godot::prelude::bevy_kissing_godot_concurrent_queue::ConcurrentQueue::unbounded());
+		impl bevy::prelude::Command for #ident {
+			fn apply(self, world: &mut bevy::prelude::World) {
+				world.trigger(self);
+			}
+		}
 
 		impl #ident {
-			pub fn untyped_slot(entity: bevy::prelude::Entity, args: &[&godot::prelude::Variant]) {
-				match #name.push(#untyped_constructor_expr) {
-					Ok(()) => (),
-					Err(e) => godot::prelude::godot_error!("Failed to queue slot for {} {}", stringify!(#ident), e),
-				}
+			pub fn trigger(commands: &mut bevy::ecs::world::CommandQueue, entity: bevy::prelude::Entity, args: &[&godot::prelude::Variant]) {
+				commands.push(#untyped_constructor_expr);
 			}
 
-			pub fn typed_slot(#(#typed_slot_args),*) {
-				match #name.push(#typed_constructor_expr) {
-					Ok(()) => (),
-					Err(e) => godot::prelude::godot_error!("Failed to queue slot for {} {}", stringify!(#ident), e),
-				}
+			pub fn untyped_slot(scene_tree: &mut godot::prelude::SceneTree, #untyped_slot_entity_argument args: &[&godot::prelude::Variant]) {
+				use bevy_kissing_godot::extensions::scene_tree::SceneTreeExt;
+				scene_tree.push_to_command_queue(#untyped_constructor_expr);
 			}
 
-			pub fn execute_queue(commands: &mut bevy::prelude::Commands) {
-				while !#name.is_empty() {
-					match #name.pop() {
-						Ok(event) => commands.trigger(event),
-						Err(e) => godot::prelude::godot_error!("Failed to execute slot for {} {}", stringify!(#ident), e),
-					}
-				}
+			pub fn typed_slot(scene_tree: &mut godot::prelude::SceneTree, #(#typed_slot_args),*) {
+				use bevy_kissing_godot::extensions::scene_tree::SceneTreeExt;
+				scene_tree.push_to_command_queue(#typed_constructor_expr);
 			}
 		}
 
 		bevy_kissing_godot::prelude::bevy_kissing_godot_inventory::submit! {
-			bevy_kissing_godot::kissing_event::kissing_event::KissingEvent::new(
+			bevy_kissing_godot::kissing_event::kissing_event_callbacks::KissingEventCallbacks::new(
 				|| bevy_kissing_godot::kissing_event::kissing_event_data::KissingEventData {
 					name: stringify!(#ident),
 					argument_count: #argument_count,
 					docs: #docs,
 				},
-				#ident::execute_queue,
-				#ident::untyped_slot,
+				#ident::trigger,
 			)
 		}
 	}.into()
@@ -249,6 +248,10 @@ fn parse_fields(fields: Fields) -> syn::Result<KissingEventExpressions> {
 			.iter()
 			.filter(|f| !matches!(f.kind, FieldKind::EventTarget))
 			.count(),
+
+		requires_entity: kissing_fields
+			.iter()
+			.any(|f| matches!(f.kind, FieldKind::EventTarget)),
 
 		untyped_constructor_expr: match fields {
 			Fields::Named(_) => {

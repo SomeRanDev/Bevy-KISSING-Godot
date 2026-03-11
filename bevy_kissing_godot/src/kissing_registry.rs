@@ -2,7 +2,9 @@ use crate::{
 	kissing_component::{
 		kissing_component::KissingComponent, kissing_component_data::KissingComponentData,
 	},
-	kissing_event::{kissing_event::KissingEvent, kissing_event_data::KissingEventData},
+	kissing_event::{
+		kissing_event_callbacks::KissingEventCallbacks, kissing_event_data::KissingEventData,
+	},
 };
 use bevy_kissing_godot_macros::get_compilation_timestamp;
 
@@ -46,7 +48,7 @@ impl KissingRegistry {
 	/// The key/value pairs of the [`VarDictionary`] correlate to the fields of [`KissingEventData`].
 	#[func]
 	pub fn find_all_kissing_events() -> Array<VarDictionary> {
-		Self::collect_inventory_as_godot_array::<KissingEvent, KissingEventData>()
+		Self::collect_inventory_as_godot_array::<KissingEventCallbacks, KissingEventData>()
 	}
 
 	/// Collects inventory of types that have data and returns them as a Godot array of dictionaries.

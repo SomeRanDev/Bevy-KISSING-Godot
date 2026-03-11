@@ -1,11 +1,11 @@
 use crate::kissing_component::kissing_component_bridge;
-use crate::kissing_event::kissing_event_bridge;
+use crate::nodes::command_queue_node::CommandQueueNode;
+use crate::nodes::tree_responder::TreeResponder;
 use crate::prelude::*;
 use crate::resources::entity_preregister::EntityPreregister;
 use crate::resources::gd_tracker::AllNodes;
 
 use std::collections::BTreeMap;
-use std::mem;
 
 use bevy::prelude::*;
 use godot::prelude::*;
@@ -26,36 +26,11 @@ use godot::classes::InputEvent;
 
 include!(concat!(env!("OUT_DIR"), "/add_components_for_node.rs"));
 
-// -----------------
-// * TreeResponder *
-// -----------------
+// -------------
+// * Constants *
+// -------------
 
-/// The node that receives and stores info from `SceneTree` events.
-#[derive(GodotClass)]
-#[class(init, base = Node)]
-pub struct TreeResponder {
-	base: Base<Node>,
-
-	added_nodes: Vec<Gd<Node>>,
-	removed_nodes: Vec<InstanceId>,
-}
-
-impl TreeResponder {
-	pub fn on_node_added(&mut self, node_added: Gd<Node>) {
-		self.added_nodes.push(node_added);
-	}
-
-	pub fn on_node_removed(&mut self, node_removed: Gd<Node>) {
-		self.removed_nodes.push(node_removed.instance_id());
-	}
-}
-
-inventory::submit! {
-	crate::kissing_node::kissing_node::KissingNode::new(
-		"TreeResponder",
-		|world, entity| crate::kissing_node::kissing_node::KissingNode::create_entity_with_godot_node_class_components::<TreeResponder>(world, entity),
-	)
-}
+pub(crate) const COMMAND_QUEUE_NODE_NAME: &str = "BevyKissingGodot_CommandQueueNode";
 
 // --------------
 // * KissingApp *
@@ -65,16 +40,18 @@ inventory::submit! {
 ///
 /// Most of the code is kept here to prevent it from being implemented within a macro.
 pub struct KissingApp {
-	app: Option<App>,
+	bevy_app: Option<App>,
 	tree_responder: Option<Gd<TreeResponder>>,
+	command_queue: Option<Gd<CommandQueueNode>>,
 	node_id_to_bevy_entity: BTreeMap<InstanceId, Entity>,
 }
 
 impl Default for KissingApp {
 	fn default() -> Self {
 		Self {
-			app: None,
+			bevy_app: Some(bevy::prelude::App::new()),
 			tree_responder: None,
+			command_queue: None,
 			node_id_to_bevy_entity: BTreeMap::new(),
 		}
 	}
@@ -86,41 +63,78 @@ impl Default for KissingApp {
 impl KissingApp {
 	/// Returns mutable reference to Bevy app instance.
 	pub fn get_app_mut(&mut self) -> &mut App {
-		self.app.as_mut().unwrap()
+		self.bevy_app.as_mut().unwrap()
 	}
 
 	/// Sets the `app` to `None` to end any Bevy processing.
 	pub fn clear_app(&mut self) {
-		self.app = None;
+		self.bevy_app = None;
 	}
 
-	/// Called immediately before the `#[kiss_bevy(_)]` function implemented by the user.
+	/// Called immediately before the `#[kiss_bevy]` function implemented by the user.
 	pub fn pre_ready(&mut self) {
-		let mut app = bevy::prelude::App::new();
-		app.add_plugins(crate::prelude::KissingCorePlugin);
+		let Some(bevy_app) = self.bevy_app.as_mut() else {
+			return;
+		};
+		bevy_app.add_plugins(crate::prelude::KissingCorePlugin);
 
 		#[cfg(feature = "input")]
-		app.add_plugins(crate::plugins::kissing_input_plugin::KissingInputPlugin);
+		bevy_app.add_plugins(crate::plugins::kissing_input_plugin::KissingInputPlugin);
 
-		self.app = app.into();
+		//self.bevy_app = bevy_app.into();
 	}
 
-	/// Called immediately after the `#[kiss_bevy(_)]` function implemented by the user.
+	/// Called immediately after the `#[kiss_bevy]` function implemented by the user.
 	pub fn post_ready(&mut self, app_node: Gd<Node>, tree: Gd<SceneTree>) {
+		self.init_command_queue(app_node.clone());
 		self.setup_scene_tree(tree.clone());
 		self.init_tree_responder(app_node, tree.clone());
 
-		if let Some(app) = self.app.as_mut() {
-			app.insert_non_send_resource(tree);
-			app.world_mut().run_schedule(bevy::prelude::Startup);
+		if let Some(bevy_app) = self.bevy_app.as_mut() {
+			bevy_app.insert_non_send_resource(tree);
+			bevy_app.world_mut().run_schedule(bevy::prelude::Startup);
 		}
+	}
+
+	/// Creates the callable that is invoked for all kissing events.
+	///
+	/// The [`app_node`] is bound as the last argument, and its [`Kisser::on_kissing_signal`]
+	/// is called when the callable is called.
+	fn init_command_queue(&mut self, mut app_node: Gd<Node>) {
+		const CALLABLE_NAME: &str = "Bevy💋Godot signal_callable";
+
+		// Call `on_kissing_signal` on the last argument passed to this callable.
+		let callable = Callable::from_fn(CALLABLE_NAME, |args| {
+			let Some(mut last) = args
+				.last()
+				.and_then(|v| v.try_to::<Gd<CommandQueueNode>>().ok())
+			else {
+				return;
+			};
+			last.bind_mut().on_kissing_signal(args);
+		});
+
+		// Create a command queue.
+		let mut command_queue_node = CommandQueueNode::new_alloc();
+		command_queue_node.set_name(COMMAND_QUEUE_NODE_NAME);
+		app_node.call_deferred("add_child", vslice![command_queue_node]);
+
+		// Store a reference to this node in scene tree for use in manual slot functions.
+		if let Some(mut tree) = app_node.get_tree_or_null() {
+			tree.set_meta(COMMAND_QUEUE_NODE_NAME, &command_queue_node.to_variant());
+		}
+
+		// Bind `command_queue_node` so it is always the last argument.
+		let callable = callable.bind(vslice![command_queue_node]);
+		command_queue_node.bind_mut().set_signal_callback(callable);
+		self.command_queue = Some(command_queue_node);
 	}
 
 	/// Creates `TreeResponder` and connect it to the `SceneTree`'s signals.
 	fn init_tree_responder(&mut self, mut app_node: Gd<Node>, tree: Gd<SceneTree>) {
 		let mut tree_responder = TreeResponder::new_alloc();
 		tree_responder.set_name("TreeResponder");
-		app_node.call_deferred("add_child", &[tree_responder.to_variant()]);
+		app_node.call_deferred("add_child", vslice![tree_responder]);
 
 		tree.signals()
 			.node_added()
@@ -134,46 +148,78 @@ impl KissingApp {
 
 	/// Called every `_process` of the user's Bevy app node.
 	pub fn process(&mut self, delta: f64) {
-		let Some(app) = self.app.as_mut() else { return };
-		app.world_mut().resource_mut::<ProcessDelta>().0 = delta;
-		app.world_mut().run_schedule(Process);
-		app.world_mut().clear_trackers();
+		let Some(bevy_app) = self.bevy_app.as_mut() else {
+			return;
+		};
+		bevy_app.world_mut().resource_mut::<ProcessDelta>().0 = delta;
+		bevy_app.world_mut().run_schedule(Process);
+		bevy_app.world_mut().clear_trackers();
 		self.handle_tree_responder_events();
+		self.apply_command_queue();
 	}
 
 	/// Called every `_physics_process` of the user's Bevy app node.
 	pub fn physics_process(&mut self, delta: f64) {
-		let Some(app) = self.app.as_mut() else { return };
-		app.world_mut().resource_mut::<PhysicsProcessDelta>().0 = delta;
-		app.world_mut().run_schedule(PhysicsProcess);
+		let Some(bevy_app) = self.bevy_app.as_mut() else {
+			return;
+		};
+		bevy_app.world_mut().resource_mut::<PhysicsProcessDelta>().0 = delta;
+		bevy_app.world_mut().run_schedule(PhysicsProcess);
 		self.handle_tree_responder_events();
+		self.apply_command_queue();
 	}
 
 	/// Called every `_input` of the user's Bevy app node.
 	#[cfg(feature = "input")]
 	pub fn input(&mut self, event: Gd<InputEvent>) {
-		let Some(app) = self.app.as_mut() else { return };
-		if let Some(mut arg) = app
+		let Some(bevy_app) = self.bevy_app.as_mut() else {
+			return;
+		};
+		if let Some(mut arg) = bevy_app
 			.world_mut()
 			.get_non_send_resource_mut::<InputEventArgument>()
 		{
 			arg.0 = Some(event);
 		}
-		app.world_mut().run_schedule(GodotInput);
+		bevy_app.world_mut().run_schedule(GodotInput);
 	}
+
+	// /// Called for all editor-connected signals.
+	// pub fn on_kissed_signal<T: KissingEvent>(&mut self, arguments: &[Variant]) {
+	// 	let Some(bevy_app) = self.bevy_app.as_mut() else {
+	// 		return;
+	// 	};
+	// 	let commands = bevy_app.world_mut().commands();
+	// 	T::trigger(commands, arguments);
+	// }
 
 	/// Handle any changes that occured from `TreeResponder` receiving `SceneTree` events.
 	fn handle_tree_responder_events(&mut self) {
 		let Some(tree_responder) = self.tree_responder.as_mut() else {
 			return;
 		};
-		let added_nodes = mem::take(&mut tree_responder.bind_mut().added_nodes);
-		let removed_nodes = mem::take(&mut tree_responder.bind_mut().removed_nodes);
+		let added_nodes = tree_responder.bind_mut().take_added_nodes();
+		let removed_nodes = tree_responder.bind_mut().take_removed_nodes();
 		for n in added_nodes {
 			self.on_node_added(n);
 		}
 		for n in removed_nodes {
 			self.on_node_removed(n);
+		}
+	}
+
+	/// Execute the commands in the queue.
+	fn apply_command_queue(&mut self) {
+		let Some(bevy_app) = self.bevy_app.as_mut() else {
+			return;
+		};
+		let Some(command_queue) = self.command_queue.as_mut() else {
+			return;
+		};
+
+		let queue = command_queue.bind_mut().take_queue(); // Make sure `bind_mut` isn't active during apply.
+		if let Some(mut queue) = queue {
+			queue.apply(bevy_app.world_mut());
 		}
 	}
 
@@ -184,14 +230,17 @@ impl KissingApp {
 
 	/// Connected to `SceneTree`'s `node_removed` signal.
 	pub fn on_node_removed(&mut self, node_removed: InstanceId) {
-		let Some(app) = self.app.as_mut() else { return };
+		let Some(bevy_app) = self.bevy_app.as_mut() else {
+			return;
+		};
 
-		app.world_mut()
+		bevy_app
+			.world_mut()
 			.non_send_resource_mut::<AllNodes>()
 			.remove(&node_removed);
 
 		if let Some(entity) = self.node_id_to_bevy_entity.remove(&node_removed) {
-			app.world_mut().despawn(entity);
+			bevy_app.world_mut().despawn(entity);
 		}
 	}
 }
@@ -231,7 +280,7 @@ impl KissingApp {
 
 	/// Set up a node for the first time.
 	fn setup_node(&mut self, node: &mut Gd<Node>) {
-		let Some(world) = self.app.as_mut().map(|a| a.world_mut()) else {
+		let Some(world) = self.bevy_app.as_mut().map(|a| a.world_mut()) else {
 			return;
 		};
 
@@ -259,7 +308,11 @@ impl KissingApp {
 		}
 
 		kissing_component_bridge::apply_kissing_components(node, world, entity_id);
-		kissing_event_bridge::apply_kissing_events(node, entity_id);
+		if let Some(command_queue) = self.command_queue.as_mut() {
+			command_queue
+				.bind_mut()
+				.apply_kissing_events(node, entity_id);
+		}
 
 		self.node_id_to_bevy_entity
 			.insert(node.instance_id(), entity_id);
