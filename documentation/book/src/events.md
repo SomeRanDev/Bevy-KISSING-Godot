@@ -184,7 +184,7 @@ fn my_system(mut commands: Commands) {
 
 All `KissingEvent`-derived structs generate a `typed_slot` function you can use to connect to Godot signals manually. Its first argument is a `&mut SceneTree`, so you must connect it using `connect_other` with the subject being the scene tree.
 
-Its arguments will be the fields of the struct (plus entity if an `EntityEvent`). However, please note you DO need to have access to the node's Bevy entity upon connecting. So if you had a `Gd<OptionButton>` (and its `Entity`), you could manually connect it to the `ItemSelected` event above by doing:
+Its arguments will be the fields of the struct (plus entity if an `EntityEvent`). So if you had a `Gd<OptionButton>` (and its `Entity`), you could manually connect it to the `ItemSelected` event above by doing:
 
 ```rust,noplayground
 let option_button: Gd<OptionButton> = /* ... */;
