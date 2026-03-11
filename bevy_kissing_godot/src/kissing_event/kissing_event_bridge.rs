@@ -1,6 +1,9 @@
-use crate::kissing_event::kissing_event::{EVENT_NAME_TO_SLOT_FUNC, UntypedSlotCallback};
+use crate::{
+	kissing_event::kissing_event_callbacks::{KissingEventCallbacks, TriggerCallback},
+	prelude::EntityExt,
+};
 
-use std::fmt::Display;
+use std::{collections::HashMap, fmt::Display, str::FromStr};
 
 use bevy::prelude::*;
 use godot::prelude::*;
@@ -27,87 +30,117 @@ impl Display for ConvertEventDataVariantToRustError {
 	}
 }
 
-// -------------
-// * Functions *
-// -------------
+// -----------
+// * Structs *
+// -----------
 
-/// Applies the "kissing" events defined in the Godot editor on a node.
-pub fn apply_kissing_events<'a>(node: &mut Gd<Node>, entity: Entity) {
-	if !node.has_meta("bevy_events") {
-		return;
+/// A utility struct for bridging the Godot signal system with Bevy's events.
+/// It mainly stores cached references and maps to quickly setup a Node's connection.
+pub(crate) struct KissingEventBridge {
+	signal_callable: Option<Callable>,
+	all_kissing_event_callbacks: Vec<&'static KissingEventCallbacks>,
+	string_name_to_index: HashMap<StringName, usize>,
+}
+
+impl KissingEventBridge {
+	/// Constructor.
+	pub(crate) fn new() -> Self {
+		let all_kissing_event_callbacks = inventory::iter::<KissingEventCallbacks>()
+			.collect::<Vec<&'static KissingEventCallbacks>>();
+
+		let mut string_name_to_index = HashMap::new();
+		for (index, callbacks) in all_kissing_event_callbacks.iter().enumerate() {
+			let Ok(string_name) = StringName::from_str((callbacks.kissing_event_data)().name);
+			string_name_to_index.insert(string_name, index);
+		}
+
+		Self {
+			signal_callable: None,
+			all_kissing_event_callbacks,
+			string_name_to_index,
+		}
 	}
 
-	let event_data = node.get_meta("bevy_events");
-	let d = match convert_event_data_variant_to_rust(event_data) {
-		Ok(d) => d,
-		Err(e) => {
-			godot_error!(
-				"Bevy Event connection metadata for {} is malformed (reason: {}).",
-				node,
-				e
-			);
+	/// The [`signal_callback`] must be assigned later.
+	pub(crate) fn set_signal_callback(&mut self, callable: Callable) {
+		self.signal_callable = Some(callable);
+	}
+
+	/// Applies the "kissing" events defined in the Godot editor on a node.
+	pub(crate) fn apply_kissing_events<'a>(&self, node: &mut Gd<Node>, entity: Entity) {
+		if !node.has_meta("bevy_events") {
 			return;
 		}
-	};
 
-	for (signal, event) in d {
-		let Some(callback) = EVENT_NAME_TO_SLOT_FUNC.get(&event) else {
-			continue;
-		};
-		node.connect(&signal, &generate_callable(entity.clone(), callback));
-	}
-}
-
-fn generate_callable(entity: Entity, callback: &'static UntypedSlotCallback) -> Callable {
-	#[cfg(feature = "multi_threaded")]
-	{
-		return Callable::from_sync_fn("", move |args| {
-			callback(entity, args);
-		});
-	}
-
-	#[cfg(not(feature = "multi_threaded"))]
-	{
-		return Callable::from_fn("", move |args| {
-			callback(entity, args);
-		});
-	}
-}
-
-/// Converts the "bevy_components" metadata from a `Node`, to a
-/// Rust-digestable representation.
-fn convert_event_data_variant_to_rust(
-	variant: Variant,
-) -> Result<Vec<(StringName, StringName)>, ConvertEventDataVariantToRustError> {
-	let mut result = vec![];
-
-	let Ok(event_data) = variant.try_to::<Array<Variant>>() else {
-		return Err(ConvertEventDataVariantToRustError::NotArray);
-	};
-	for i in 0..event_data.len() {
-		let Some(event) = event_data
-			.get(i)
-			.and_then(|d| d.try_to::<VarDictionary>().ok())
-		else {
-			return Err(ConvertEventDataVariantToRustError::EntryNotDictionary);
+		let event_data = node.get_meta("bevy_events");
+		let d = match Self::convert_event_data_variant_to_rust(event_data) {
+			Ok(d) => d,
+			Err(e) => {
+				godot_error!(
+					"Bevy Event connection metadata for {} is malformed (reason: {}).",
+					node,
+					e
+				);
+				return;
+			}
 		};
 
-		let Some(signal_name) = event
-			.get("signal")
-			.and_then(|v| v.try_to_relaxed::<StringName>().ok())
-		else {
-			return Err(ConvertEventDataVariantToRustError::EntryLacksSignal);
-		};
+		for (signal, event) in d {
+			let Some(index) = self.string_name_to_index.get(&event) else {
+				continue;
+			};
 
-		let Some(event_name) = event
-			.get("event")
-			.and_then(|v| v.try_to_relaxed::<StringName>().ok())
-		else {
-			return Err(ConvertEventDataVariantToRustError::EntryLacksEvent);
-		};
-
-		result.push((signal_name, event_name));
+			node.connect(
+				&signal,
+				&self
+					.signal_callable
+					.as_ref()
+					.unwrap()
+					.bind(&[(*index as u32).to_variant(), entity.to_godot_variant()]),
+			);
+		}
 	}
 
-	Ok(result)
+	pub(crate) fn get_trigger_callback(&self, index: u32) -> Option<TriggerCallback> {
+		self.all_kissing_event_callbacks
+			.get(index as usize)
+			.map(|c| c.trigger)
+	}
+
+	/// Converts the "bevy_components" metadata from a `Variant` to a Rust-digestable representation.
+	fn convert_event_data_variant_to_rust(
+		variant: Variant,
+	) -> Result<Vec<(StringName, StringName)>, ConvertEventDataVariantToRustError> {
+		let mut result = vec![];
+
+		let Ok(event_data) = variant.try_to::<Array<Variant>>() else {
+			return Err(ConvertEventDataVariantToRustError::NotArray);
+		};
+		for i in 0..event_data.len() {
+			let Some(event) = event_data
+				.get(i)
+				.and_then(|d| d.try_to::<VarDictionary>().ok())
+			else {
+				return Err(ConvertEventDataVariantToRustError::EntryNotDictionary);
+			};
+
+			let Some(signal_name) = event
+				.get("signal")
+				.and_then(|v| v.try_to_relaxed::<StringName>().ok())
+			else {
+				return Err(ConvertEventDataVariantToRustError::EntryLacksSignal);
+			};
+
+			let Some(event_name) = event
+				.get("event")
+				.and_then(|v| v.try_to_relaxed::<StringName>().ok())
+			else {
+				return Err(ConvertEventDataVariantToRustError::EntryLacksEvent);
+			};
+
+			result.push((signal_name, event_name));
+		}
+
+		Ok(result)
+	}
 }

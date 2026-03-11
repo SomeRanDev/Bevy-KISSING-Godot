@@ -14,9 +14,7 @@ pub use crate::components::{
 };
 pub use crate::extensions::{entity::EntityExt, variant::VariantExt};
 pub use crate::kissing_component::kissing_component_field::KissingComponentField;
-pub use crate::plugins::{
-	kissing_core_plugin::KissingCorePlugin, kissing_event_plugin::KissingEventPlugin,
-};
+pub use crate::plugins::kissing_core_plugin::KissingCorePlugin;
 pub use crate::resources::{
 	gd_handle::GdHandle, gd_tracker::AllNodes, gd_tracker::AllResources,
 	godot_thread_ensurer::GodotThreadEnsurer, input_event_argument::InputEventArgument,
@@ -47,5 +45,4 @@ pub use bevy_kissing_godot_macros::{
 // -----------------------------
 
 // Macro-generated code requires access to `inventory` crate.
-pub use concurrent_queue as bevy_kissing_godot_concurrent_queue;
 pub use inventory as bevy_kissing_godot_inventory;

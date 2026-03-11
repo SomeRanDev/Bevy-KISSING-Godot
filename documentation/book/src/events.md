@@ -182,14 +182,48 @@ fn my_system(mut commands: Commands) {
 
 ## Manually connecting signals
 
-All `KissingEvent`-derived structs generate a `typed_slot` function you can use to connect to Godot signals manually. Its arguments will be the fields of the struct (plus entity if an `EntityEvent`). However, please note you DO need to have access to the node's Bevy entity upon connecting.
+All `KissingEvent`-derived structs generate a `typed_slot` function you can use to connect to Godot signals manually. Its first argument is a `&mut SceneTree`, so you must connect it using `connect_other` with the subject being the scene tree.
 
-So if you had a `Gd<OptionButton>` (and its `Entity`), you could manually connect it to the `ItemSelected` event above by doing:
+Its arguments will be the fields of the struct (plus entity if an `EntityEvent`). However, please note you DO need to have access to the node's Bevy entity upon connecting. So if you had a `Gd<OptionButton>` (and its `Entity`), you could manually connect it to the `ItemSelected` event above by doing:
+
 ```rust,noplayground
 let option_button: Gd<OptionButton> = /* ... */;
 let option_button_entity: Entity = /* ... */;
 
-option_button.signals().item_selected.connect(move |index: i32| {
+let scene_tree = option_button.get_tree();
+option_button.signals().item_selected.connect_other(&scene_tree, move |index: i32| {
 	ItemSelected::typed_slot(option_button_entity, index);
 });
+```
+
+If you'd like to connect within a Bevy system function, the `NonSend` scene tree instance can be used!
+
+```rust,noplayground
+# use bevy::prelude::*;
+# use bevy_kissing_godot::prelude::*;
+# use godot::classes::Control;
+# 
+fn setup(app: &mut App) {
+	app.add_systems(Startup, startup_scene_tree)
+		.add_observer(on_close_requested);
+}
+
+fn startup_scene_tree(mut scene_tree: NonSendMut<Gd<SceneTree>>) {
+	scene_tree.set_auto_accept_quit(false);
+	scene_tree
+		.get_root()
+		.unwrap()
+		.signals()
+		.close_requested()
+		.connect_other(scene_tree.as_ref(), CloseRequested::typed_slot);
+}
+
+// ---
+
+#[derive(Event, KissingEvent)]
+struct CloseRequested;
+
+fn on_close_requested(_event: On<CloseRequested>) {
+	// do something on close...
+}
 ```
