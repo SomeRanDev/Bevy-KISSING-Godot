@@ -82,7 +82,7 @@ mod prelude;"),
 		.content("use bevy::prelude::*;
 use bevy_kissing_godot::prelude::*;
 
-#[kiss_bevy({AUTOLOAD_RUST_NAME})]
+#[kiss_bevy(node_name = {AUTOLOAD_RUST_NAME})]
 fn main(app: &mut App) {
 	// Do something with app
 }"),
