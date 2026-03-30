@@ -67,7 +67,9 @@ gdext-gen = { version = \"0.1.1\" }"),
 
 	ProjectFile
 		.new("{GAME_CRATE_FOLDER_NAME}/src/prelude.rs")
-		.content("pub(crate) use bevy::prelude::*;
+		.content("#![allow(unused)]
+
+pub(crate) use bevy::prelude::*;
 pub(crate) use bevy_kissing_godot::prelude::*;
 pub(crate) use godot::prelude::*;"),
 
