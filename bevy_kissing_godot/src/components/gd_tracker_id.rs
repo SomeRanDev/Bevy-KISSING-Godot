@@ -7,7 +7,7 @@ pub trait GdTrackerId {
 
 macro_rules! define_tracker_id {
 	($name: ident, $type: ty, $tracker: ty) => {
-		#[derive(Component, Default, Debug, Clone)]
+		#[derive(Component, Default, Debug, Clone, PartialEq)]
 		pub struct $name {
 			id: usize,
 		}
