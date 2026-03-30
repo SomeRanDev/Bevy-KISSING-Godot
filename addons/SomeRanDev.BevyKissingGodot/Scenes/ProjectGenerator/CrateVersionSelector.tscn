@@ -26,8 +26,10 @@ theme_override_constants/separation = 0
 [node name="Text" type="LineEdit" parent="TextContainer" unique_id=1715642065]
 layout_mode = 2
 size_flags_horizontal = 3
+text = "1.0.0"
 
 [node name="FileDialogButton" type="Button" parent="TextContainer" unique_id=461235467 node_paths=PackedStringArray("line_edit")]
+visible = false
 layout_mode = 2
 text = "..."
 script = ExtResource("2_w6tgv")

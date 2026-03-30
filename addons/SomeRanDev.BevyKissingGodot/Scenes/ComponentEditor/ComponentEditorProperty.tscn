@@ -2,7 +2,7 @@
 
 [ext_resource type="Script" uid="uid://ccd2i3er1x3j0" path="res://addons/SomeRanDev.BevyKissingGodot/GDScript/InspectorPlugin/ComponentEditor/ComponentPropertyEditor.gd" id="1_2vb40"]
 
-[sub_resource type="DPITexture" id="DPITexture_ss1eu"]
+[sub_resource type="DPITexture" id="DPITexture_brrqi"]
 _source = "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"16\" height=\"16\"><path fill=\"#ff5d5d\" d=\"M2 1v8.586l1.293-1.293a1 1 0 0 1 1.414 0L7 10.587l2.293-2.293a1 1 0 0 1 1.414 0L13 10.586l1-1V6H9V1H2zm8 0v4h4zm-6 9.414-2 2V15h12v-2.586l-.293.293a1 1 0 0 1-1.414 0L10 10.414l-2.293 2.293a1 1 0 0 1-1.414 0L4 10.414z\"/></svg>
 "
 
@@ -33,7 +33,7 @@ size_flags_horizontal = 3
 visible = false
 layout_mode = 2
 text = "Add"
-icon = SubResource("DPITexture_ss1eu")
+icon = SubResource("DPITexture_brrqi")
 
 [node name="PaddingMiddle" type="Control" parent="HBoxContainer" unique_id=1995369354]
 layout_mode = 2
@@ -43,7 +43,7 @@ size_flags_horizontal = 3
 visible = false
 layout_mode = 2
 text = "Delete"
-icon = SubResource("DPITexture_ss1eu")
+icon = SubResource("DPITexture_brrqi")
 
 [node name="PaddingRight" type="Control" parent="HBoxContainer" unique_id=1493939451]
 layout_mode = 2
