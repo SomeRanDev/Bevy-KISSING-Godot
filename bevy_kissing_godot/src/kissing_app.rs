@@ -300,18 +300,20 @@ impl KissingApp {
 		let mut entity = add_components_for_node(entity, node);
 
 		entity.insert(id);
-
 		let entity_id = entity.id();
-
-		if let Ok(mut ready_trait) = node.clone().try_dynify::<dyn BevyEntityReady>() {
-			ready_trait.dyn_bind_mut().bevy_entity_ready(entity);
-		}
+		drop(entity); // Drop entity so world can be used in apply_kissing_components
 
 		kissing_component_bridge::apply_kissing_components(node, world, entity_id);
 		if let Some(command_queue) = self.command_queue.as_mut() {
 			command_queue
 				.bind_mut()
 				.apply_kissing_events(node, entity_id);
+		}
+
+		if let Ok(mut ready_trait) = node.clone().try_dynify::<dyn BevyEntityReady>() {
+			ready_trait
+				.dyn_bind_mut()
+				.bevy_entity_ready(world.entity_mut(entity_id));
 		}
 
 		self.node_id_to_bevy_entity
