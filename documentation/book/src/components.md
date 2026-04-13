@@ -145,3 +145,79 @@ struct TextGenerator {
 	text: String,
 }
 ```
+
+## Exporting Nodes and Resources
+
+If you'd like to "export" a reference to a `Node` or `Resource`, `#[export_node]` and `#[export_resource]` can be used. The type for these must be `Option<GodotNodeId>` or `Option<GodotResourceId>` respectively.
+
+```rust,noplayground
+# use bevy::prelude::*;
+# use godot::prelude::*;
+# use bevy_kissing_godot::prelude::*;
+# 
+#[derive(Component, KissingComponent)]
+struct Turrent {
+	#[export_node]
+	target: Option<GodotNodeId>,
+
+	#[export_resource]
+	gradient: Option<GodotResourceId>,
+}
+```
+
+The type for the export can be listed in the arguments for the attributes. One or more type may be specified. If none are specified, any `Node` or `Resource` can be provided.
+
+```rust,noplayground
+# use bevy::prelude::*;
+# use godot::prelude::*;
+# use bevy_kissing_godot::prelude::*;
+# 
+#[derive(Component, KissingComponent)]
+struct Turrent {
+	#[export_node(Node3D)]
+	target: Option<GodotNodeId>,
+
+	#[export_resource(GradientTexture1D, GradientTexture2D)]
+	gradient: Option<GodotResourceId>,
+}
+```
+
+A list of `Node`s or `Resource`s can be provided if `Vec` is used instead of `Option`!
+
+```rust,noplayground
+# use bevy::prelude::*;
+# use godot::prelude::*;
+# use bevy_kissing_godot::prelude::*;
+# 
+#[derive(Component, KissingComponent)]
+struct LevelGenerator {
+	#[export_resource(PackedScene)]
+	possible_rooms: Vec<GodotResourceId>,
+}
+```
+
+`GodotNodeId` and `GodotResourceId` can be converted to actual `Gd<Node>`s or `Gd<Resource>`s using `NonSend<AllNodes>` and `NonSend<AllResources>` respectively.
+
+```rust,noplayground
+# use bevy::prelude::*;
+# use godot::prelude::*;
+# use bevy_kissing_godot::prelude::*;
+# 
+# #[derive(Component, KissingComponent)]
+# struct LevelGenerator {
+# 	#[export_resource(PackedScene)]
+# 	possible_rooms: Vec<GodotResourceId>,
+# }
+# 
+fn start_level_generator(
+	generator: Single<&LevelGenerator>,
+	all_resources: NonSend<AllResources>,
+) {
+	let generator = generator.into_inner();
+	for room in generator.possible_rooms {
+		let packed_scene = room.get_as::<PackedScene>(&all_resources);
+		// do something with packed_scene...
+	}
+	
+}
+```
