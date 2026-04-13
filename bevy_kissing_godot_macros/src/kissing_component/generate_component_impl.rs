@@ -83,25 +83,36 @@ pub(super) fn generate_component_impl(
 						Some(#tracker.get_or_register_id_from_gd_object(&#identifier))
 					}),
 				};
-				let identifier_plural = format_ident!("{}s", identifier);
-				let identifier_maybe = format_ident!("maybe_{}", identifier);
+				let to_error_string = format!(
+					"couldn't generate array field \"{}\" as `{}`",
+					ident.to_string(),
+					quote!(#ty).to_string()
+				);
 				quote! {
 					#ident: fields
 						.get(stringify!(#ident))
 						.and_then(|#identifier| {
-							#identifier
-								.try_to::<godot::prelude::Array<#godot_type>>()
-								.ok()
-								.map(|#identifier_plural|
-									#identifier_plural
-										.iter_shared()
-										.map(|#identifier| #convert)
-										.filter(|#identifier_maybe| #identifier_maybe.is_some())
-										.map(|#identifier| #identifier.unwrap())
-										.collect::<Vec<#id_type>>()
-								)
+							let typed = #identifier
+								.try_to::<godot::prelude::Array<#godot_type>>();
+							let untyped = #identifier
+								.try_to::<godot::prelude::VarArray>();
+
+							if let Ok(typed) = typed {
+								Some(typed
+									.iter_shared()
+									.filter_map(|#identifier| #convert)
+									.collect::<Vec<#id_type>>())
+							} else if let Ok(untyped) = untyped {
+								Some(untyped
+									.iter_shared()
+									.filter_map(|#identifier| #identifier.try_to::<#godot_type>().ok())
+									.filter_map(|#identifier| #convert)
+									.collect::<Vec<#id_type>>())
+							} else {
+								None
+							}
 						})
-						.unwrap_or_default()
+						.expect(#to_error_string)
 				}
 			} else {
 				let convert = match data.kind {
