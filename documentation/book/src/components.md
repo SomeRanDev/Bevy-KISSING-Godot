@@ -126,3 +126,22 @@ fn health_on_construct(component: &mut Health) {
 	component.current_hp = component.maximum_hp;
 }
 ```
+
+## Exporting Strings
+
+Bevy components cannot contain `GString`, so a Rust `String` can be exported using `#[export_string]`.
+
+`#[initial_value = "..."]` can also be used with it.
+
+```rust,noplayground
+# use bevy::prelude::*;
+# use godot::prelude::*;
+# use bevy_kissing_godot::prelude::*;
+# 
+#[derive(Component, KissingComponent)]
+struct TextGenerator {
+	#[export_string]
+	#[initial_value = "Hello world."]
+	text: String,
+}
+```
