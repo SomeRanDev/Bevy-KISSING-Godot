@@ -33,8 +33,15 @@ pub(crate) fn is_field_export(field: &syn::Field) -> bool {
 	field.attrs.iter().any(|a| match a.path().get_ident() {
 		Some(ident) => matches!(
 			ident.to_string().as_str(),
-			"export" | "export_node" | "export_resource"
+			"export" | "export_node" | "export_resource" | "export_string"
 		),
+		_ => false,
+	})
+}
+
+pub(crate) fn is_field_export_string(field: &syn::Field) -> bool {
+	field.attrs.iter().any(|a| match a.path().get_ident() {
+		Some(ident) => ident.to_string().as_str() == "export_string",
 		_ => false,
 	})
 }

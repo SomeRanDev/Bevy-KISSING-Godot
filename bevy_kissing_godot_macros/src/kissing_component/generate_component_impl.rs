@@ -1,7 +1,7 @@
 use crate::kissing_component::KissingComponentArguments;
 use crate::utils::{
 	NodeOrResource, generate_godot_object_name_for_kissing_component_data,
-	get_doc_comment_from_attrs, is_field_export, is_node_or_resource_id,
+	get_doc_comment_from_attrs, is_field_export, is_field_export_string, is_node_or_resource_id,
 };
 
 use proc_macro2::TokenStream as TokenStream2;
@@ -54,6 +54,12 @@ pub(super) fn generate_component_impl(
 				#ident: Default::default()
 			};
 		};
+		if !is_field_export(&f) {
+			return quote! {
+				#ident: Default::default()
+			};
+		}
+
 		let ty = &f.ty;
 		if let Some(data) = is_node_or_resource_id(ty) {
 			let (identifier, godot_type, id_type, tracker) = match data.kind {
@@ -133,23 +139,30 @@ pub(super) fn generate_component_impl(
 						})
 				}
 			}
-		} else if is_field_export(&f) {
+		} else {
 			let get_error_string = format!("could not get field of name {}", ident.to_string());
 			let to_error_string = format!(
-				"could not type field of name {} as {:?}",
+				"could not type field of name \"{}\" as `{:?}`",
 				ident.to_string(),
-				ty
+				quote!(#ty).to_string()
 			);
-			quote! {
-				#ident: fields
-					.get(stringify!(#ident))
-					.expect(#get_error_string)
-					.try_to::<#ty>()
-					.expect(#to_error_string)
-			}
-		} else {
-			quote! {
-				#ident: Default::default()
+			if is_field_export_string(&f) {
+				quote! {
+					#ident: fields
+						.get(stringify!(#ident))
+						.expect(#get_error_string)
+						.try_to::<GString>()
+						.expect(#to_error_string)
+						.to_string()
+				}
+			} else {
+				quote! {
+					#ident: fields
+						.get(stringify!(#ident))
+						.expect(#get_error_string)
+						.try_to::<#ty>()
+						.expect(#to_error_string)
+				}
 			}
 		}
 	});

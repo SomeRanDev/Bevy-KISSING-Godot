@@ -18,6 +18,9 @@ enum FieldAttribute {
 	ExportNodeOrResource {
 		data: ExportNodeOrResource,
 	},
+	ExportString {
+		initial_value: Option<proc_macro2::TokenStream>,
+	},
 }
 
 // -----------
@@ -127,6 +130,17 @@ pub(super) fn generate_godot_object_struct(
 					}
 				});
 			}
+
+			FieldAttribute::ExportString { initial_value } => {
+				f.attrs.push(syn::parse_quote! { #[export] });
+
+				f.ty = syn::parse_quote! { godot::prelude::GString };
+
+				if let Some(initial_value) = initial_value {
+					f.attrs
+						.push(syn::parse_quote! { #[init(val = #initial_value)] });
+				}
+			}
 		}
 	}
 
@@ -169,9 +183,15 @@ fn take_any_export_attribute_if_exists(
 
 	if let Some(export_attribute_and_initial_value) = export_attribute_and_initial_value {
 		return Some(export_attribute_and_initial_value.map(
-			|(original_attribute, initial_value)| FieldAttribute::Export {
-				original_attribute,
-				initial_value,
+			|(original_attribute, initial_value)| {
+				if original_attribute.path().is_ident("export_string") {
+					FieldAttribute::ExportString { initial_value }
+				} else {
+					FieldAttribute::Export {
+						original_attribute,
+						initial_value,
+					}
+				}
 			},
 		));
 	}
@@ -185,7 +205,8 @@ fn take_any_export_attribute_if_exists(
 	None
 }
 
-/// If a `#[export]` attribute exists on `field`, it is removed and returned verbatim.
+/// If a `#[export]` or `#[export_string]` attribute exists on `field`, it is removed
+/// and returned verbatim.
 ///
 /// Returns `None` if there are no `#[export]` attributes.
 fn take_export_attribute_if_exists(
@@ -196,7 +217,9 @@ fn take_export_attribute_if_exists(
 	let mut initial_value_attr = None;
 	while i < field.attrs.len() {
 		let attr = &field.attrs[i];
-		if export_attr.is_none() && attr.path().is_ident("export") {
+		if export_attr.is_none() && attr.path().is_ident("export")
+			|| attr.path().is_ident("export_string")
+		{
 			export_attr = Some(field.attrs.remove(i));
 			continue; // do not increment i
 		} else if initial_value_attr.is_none() && attr.path().is_ident("initial_value") {

@@ -69,7 +69,14 @@ mod utils;
 /// ```
 #[proc_macro_derive(
 	KissingComponent,
-	attributes(kissing_component, export_resource, export_node, export, initial_value)
+	attributes(
+		kissing_component,
+		export_resource,
+		export_node,
+		export,
+		export_string,
+		initial_value
+	)
 )]
 pub fn kissing_component_derive(input: TokenStream) -> TokenStream {
 	kissing_component::kissing_component_derive_impl(input)
