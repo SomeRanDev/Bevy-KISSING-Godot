@@ -38,6 +38,8 @@ mod utils;
 /// }
 /// ```
 ///
+/// ## Exporting Nodes
+///
 /// `#[export_node]` can be used to allow for a [`godot::prelude::NodePath`] input.
 ///
 /// To allow only certain classes to be selected in the editor, Godot classes may be listed
@@ -67,6 +69,20 @@ mod utils;
 /// 	}
 /// }
 /// ```
+///
+/// ## Exporting Resources
+///
+/// `#[export_resource]` works exactly the same as `#[export_node]`, but it works for Godot resources.
+///
+/// The field it's used on must be an [`Option<bevy_kissing_godot::prelude::GodotResourceId>`].
+/// [`GodotResourceId`] can be converted an actual `Gd<T>` node through `NonSend<AllResources>` at runtime.
+///
+/// ## Field Attribute Behavior
+///
+/// [`KissingComponent`] will generate a new `#[derive(GodotClass)]` struct that inherits from `Object`
+/// that is used to configure the component in the Godot editor. Any attributes above the `#[export]`,
+/// `#[export_node]`, or `#[export_resource]` attribute will not be copied to the equivalent field in
+/// the `Object`-derived struct.
 #[proc_macro_derive(
 	KissingComponent,
 	attributes(

@@ -1,6 +1,6 @@
 use proc_macro2::Span;
 use quote::{ToTokens, quote};
-use syn::{Field, Ident, ItemStruct, Meta, Path, spanned::Spanned};
+use syn::{Attribute, Field, Ident, ItemStruct, Meta, Path, spanned::Spanned};
 
 use crate::utils::{
 	NodeOrResource, generate_godot_object_name_for_kissing_component_data, is_field_export,
@@ -12,7 +12,7 @@ use crate::utils::{
 
 enum FieldAttribute {
 	Export {
-		original_attribute: syn::Attribute,
+		export_attribute: syn::Attribute,
 		initial_value: Option<proc_macro2::TokenStream>,
 	},
 	ExportNodeOrResource {
@@ -60,18 +60,17 @@ pub(super) fn generate_godot_object_struct(
 			continue;
 		};
 
-		let export_data = match export_data {
-			Ok(data) => data,
-			Err(err) => return Err(err),
-		};
+		let (field_attribute, new_attributes) = export_data?;
 
-		match export_data {
+		f.attrs = new_attributes;
+
+		match field_attribute {
 			FieldAttribute::Export {
-				original_attribute,
+				export_attribute,
 				initial_value,
 			} => {
 				// Transfer `#[export]` attribute.
-				f.attrs.push(original_attribute);
+				f.attrs.push(export_attribute);
 
 				// Add `#[init(val = TOKENS)]` for `#[initial_value = TOKENS]`.
 				if let Some(initial_value) = initial_value {
@@ -170,39 +169,61 @@ pub(super) fn generate_godot_object_struct(
 ///
 /// Returns `Err` if there IS a supported attribute, but it's malformed.
 fn take_any_export_attribute_if_exists(
-	field: &mut Field,
-) -> Option<Result<FieldAttribute, syn::Error>> {
-	let export_attribute_and_initial_value = take_export_attribute_if_exists(field);
+	field: &Field,
+) -> Option<Result<(FieldAttribute, Vec<Attribute>), syn::Error>> {
+	let export_attribute_result = take_export_attribute_if_exists(field);
 	let export_node_or_resource = take_export_node_or_resource_attribute_if_exists(field);
-	if export_attribute_and_initial_value.is_some() && export_node_or_resource.is_some() {
+	if export_attribute_result.is_some() && export_node_or_resource.is_some() {
 		return Some(Err(syn::Error::new(
 			field.span(),
 			"A field cannot have both #[export] and #[export_node/resource] on it",
 		)));
 	}
 
-	if let Some(export_attribute_and_initial_value) = export_attribute_and_initial_value {
-		return Some(export_attribute_and_initial_value.map(
-			|(original_attribute, initial_value)| {
-				if original_attribute.path().is_ident("export_string") {
+	if let Some(export_attribute_result) = export_attribute_result {
+		return Some(export_attribute_result.map(|export_attribute_result| {
+			let TakeExportAttributeIfExistsResult {
+				export_attribute,
+				initial_value,
+				new_attributes,
+			} = export_attribute_result;
+			(
+				if export_attribute.path().is_ident("export_string") {
 					FieldAttribute::ExportString { initial_value }
 				} else {
 					FieldAttribute::Export {
-						original_attribute,
+						export_attribute,
 						initial_value,
 					}
-				}
-			},
-		));
+				},
+				new_attributes,
+			)
+		}));
 	}
 
 	if let Some(export_node_or_resource) = export_node_or_resource {
-		return Some(
-			export_node_or_resource.map(|data| FieldAttribute::ExportNodeOrResource { data }),
-		);
+		return Some(export_node_or_resource.map(|export_node_or_resource| {
+			let TakeExportNodeOrResourceAttributeIfExistsResult {
+				export_node_or_resource,
+				new_attributes,
+			} = export_node_or_resource;
+			(
+				FieldAttribute::ExportNodeOrResource {
+					data: export_node_or_resource,
+				},
+				new_attributes,
+			)
+		}));
 	}
 
 	None
+}
+
+/// The result from `take_export_attribute_if_exists`.
+struct TakeExportAttributeIfExistsResult {
+	export_attribute: syn::Attribute,
+	initial_value: Option<proc_macro2::TokenStream>,
+	new_attributes: Vec<Attribute>,
 }
 
 /// If a `#[export]` or `#[export_string]` attribute exists on `field`, it is removed
@@ -210,27 +231,32 @@ fn take_any_export_attribute_if_exists(
 ///
 /// Returns `None` if there are no `#[export]` attributes.
 fn take_export_attribute_if_exists(
-	field: &mut Field,
-) -> Option<Result<(syn::Attribute, Option<proc_macro2::TokenStream>), syn::Error>> {
+	field: &Field,
+) -> Option<Result<TakeExportAttributeIfExistsResult, syn::Error>> {
 	let mut i = 0;
-	let mut export_attr = None;
+	let mut export_attribute = None;
 	let mut initial_value_attr = None;
-	while i < field.attrs.len() {
-		let attr = &field.attrs[i];
-		if export_attr.is_none() && attr.path().is_ident("export")
+	let mut attrs = field.attrs.clone();
+	while i < attrs.len() {
+		let attr = &attrs[i];
+		if export_attribute.is_none() && attr.path().is_ident("export")
 			|| attr.path().is_ident("export_string")
 		{
-			export_attr = Some(field.attrs.remove(i));
+			export_attribute = Some(attrs.remove(i));
 			continue; // do not increment i
 		} else if initial_value_attr.is_none() && attr.path().is_ident("initial_value") {
-			initial_value_attr = Some(field.attrs.remove(i));
+			initial_value_attr = Some(attrs.remove(i));
 			continue; // do not increment i
+		} else if export_attribute.is_none() {
+			// Remove all attributes prior to #[export]
+			attrs.remove(i);
+			continue;
 		}
 		i += 1;
 	}
 
 	// If no `#[export]` attribute, return `None` entirely.
-	let Some(export_attr) = export_attr else {
+	let Some(export_attribute) = export_attribute else {
 		return None;
 	};
 
@@ -250,7 +276,17 @@ fn take_export_attribute_if_exists(
 		}
 	}
 
-	Some(Ok((export_attr, initial_value_token_stream)))
+	Some(Ok(TakeExportAttributeIfExistsResult {
+		export_attribute,
+		initial_value: initial_value_token_stream,
+		new_attributes: attrs,
+	}))
+}
+
+/// The result from `take_export_node_or_resource_attribute_if_exists`.
+struct TakeExportNodeOrResourceAttributeIfExistsResult {
+	export_node_or_resource: ExportNodeOrResource,
+	new_attributes: Vec<Attribute>,
 }
 
 /// If an `#[export_node(A, B, etc...)]` or `#[export_resource(A, B, etc...)]` attribute
@@ -260,26 +296,30 @@ fn take_export_attribute_if_exists(
 ///
 /// Returns `None` if there are no `#[export_node]` attributes.
 fn take_export_node_or_resource_attribute_if_exists(
-	field: &mut Field,
-) -> Option<Result<ExportNodeOrResource, syn::Error>> {
+	field: &Field,
+) -> Option<Result<TakeExportNodeOrResourceAttributeIfExistsResult, syn::Error>> {
 	let mut i = 0;
-	let mut attr = None;
-	for a in &field.attrs {
-		if a.path().is_ident("export_node") || a.path().is_ident("export_resource") {
-			attr = Some(field.attrs.remove(i));
+	let mut export_attribute = None;
+	let mut attrs = field.attrs.clone();
+	while i < attrs.len() {
+		let attr = &attrs[i];
+		if attr.path().is_ident("export_node") || attr.path().is_ident("export_resource") {
+			export_attribute = Some(attrs.remove(i));
 			break;
+		} else if export_attribute.is_none() {
+			// Remove all attributes prior to #[export_node/resource]
+			attrs.remove(i);
+			continue;
 		}
 		i += 1;
 	}
 
-	let Some(attr) = attr else {
-		return None;
-	};
+	let export_attribute = export_attribute?;
 
-	let valid_types = if !matches!(attr.meta, Meta::List(_)) {
+	let valid_types = if !matches!(export_attribute.meta, Meta::List(_)) {
 		Ok(vec![])
 	} else {
-		attr.parse_args_with(
+		export_attribute.parse_args_with(
 			|input: syn::parse::ParseStream| -> syn::Result<Vec<Ident>> {
 				let mut result = vec![];
 				while !input.is_empty() {
@@ -302,12 +342,15 @@ fn take_export_node_or_resource_attribute_if_exists(
 		Err(e) => return Some(Err(e)),
 	};
 
-	Some(Ok(ExportNodeOrResource {
-		types: valid_types,
-		kind: match attr.path().get_ident() {
-			Some(v) if v == "export_node" => NodeOrResource::Node,
-			_ => NodeOrResource::Resource,
+	Some(Ok(TakeExportNodeOrResourceAttributeIfExistsResult {
+		export_node_or_resource: ExportNodeOrResource {
+			types: valid_types,
+			kind: match export_attribute.path().get_ident() {
+				Some(v) if v == "export_node" => NodeOrResource::Node,
+				_ => NodeOrResource::Resource,
+			},
 		},
+		new_attributes: attrs,
 	}))
 }
 
