@@ -45,4 +45,5 @@ pub use bevy_kissing_godot_macros::{
 // -----------------------------
 
 // Macro-generated code requires access to `inventory` crate.
+#[doc(hidden)]
 pub use inventory as bevy_kissing_godot_inventory;
