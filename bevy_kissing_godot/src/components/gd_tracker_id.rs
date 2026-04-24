@@ -7,7 +7,7 @@ pub trait GdTrackerId {
 
 macro_rules! define_tracker_id {
 	($name: ident, $type: ty, $tracker: ty) => {
-		#[derive(Component, Default, Debug, Clone, PartialEq)]
+		#[derive(Component, Default, Debug, Clone, Copy, PartialEq)]
 		pub struct $name {
 			id: usize,
 		}
@@ -27,6 +27,12 @@ macro_rules! define_tracker_id {
 		impl GdTrackerId for $name {
 			fn new(id: usize) -> Self {
 				Self { id }
+			}
+		}
+
+		impl std::fmt::Display for $name {
+			fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+				write!(f, "{}({})", stringify!($name), self.id)
 			}
 		}
 	};
