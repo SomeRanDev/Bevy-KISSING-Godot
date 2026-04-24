@@ -44,7 +44,7 @@ cargo add bevy_kissing_godot --git https://github.com/SomeRanDev/Bevy-KISSING-Go
 use bevy::prelude::*;
 use bevy_kissing_godot::prelude::*;
 
-#[kiss_bevy(YourNameForBevyAutoloadNode)]
+#[kiss_bevy(node_name = YourNameForBevyAutoloadNode)]
 fn main(app: &mut App) {
     // do stuff with app
 }
