@@ -32,6 +32,17 @@ pub use crate::types::{
 #[cfg(feature = "input")]
 pub use crate::scedules::GodotInput;
 
+#[cfg(feature = "node_triggerables")]
+pub use crate::{
+	events::{
+		add_child::AddChild, queue_free::QueueFree, remove_child::RemoveChild,
+		run_code_on_node::RunCodeOnNode, run_code_on_node_with_params::RunCodeOnNodeWithParams,
+		set_godot_property::SetGodotProperty, set_position_3d::SetPosition3D,
+		set_rotation_3d::SetRotation3D, set_scale_3d::SetScale3D,
+	},
+	plugins::node_triggerables::NodeTriggerables,
+};
+
 // -----------------
 // * Macro Exports *
 // -----------------

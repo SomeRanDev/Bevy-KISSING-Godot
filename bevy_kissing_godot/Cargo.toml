@@ -12,6 +12,7 @@ license.workspace = true
 [features]
 default = []
 input = ["bevy_kissing_godot_macros/input"]
+node_triggerables = []
 multi_threaded = ["godot/experimental-threads", "bevy/multi_threaded"]
 
 [dependencies]
@@ -19,6 +20,7 @@ godot.workspace = true
 bevy.workspace = true
 bevy_kissing_godot_macros.workspace = true
 inventory = "0.3.21"
+thiserror = "2.0.18"
 
 [build-dependencies]
 serde_json = "1.0"
